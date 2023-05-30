@@ -7,6 +7,9 @@ class Type(models.Model):
     idType = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True) 
     typeQuestion  = models.TextField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
 class Customer(AbstractBaseUser):
     idCustomer     = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     mailCust       = models.TextField(max_length=100)
@@ -14,6 +17,9 @@ class Customer(AbstractBaseUser):
 
     USERNAME_FIELD = 'loginCust'
     EMAIL_FIELD    = 'mailCust'
+
+    def __str__(self):
+        return self.name
 
 class Form(models.Model):
     idForm           = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -26,10 +32,16 @@ class Form(models.Model):
     isOnline         = models.BooleanField (default="false")
     Customer         = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.name
+
 class Page(models.Model):
     idPage = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     number = models.IntegerField()
     Form   = models.ForeignKey(Form, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
 
 class Question(models.Model):
     idQuestion = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -40,11 +52,17 @@ class Question(models.Model):
     nbrAnswerMin = models.IntegerField()
     nbrAnswerMax = models.IntegerField()
 
+    def __str__(self):
+        return self.name
+
 class Answer(models.Model):
     idQuestion = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     type       = models.ForeignKey(Type    , on_delete=models.CASCADE)
     Question   = models.ForeignKey(Question, on_delete=models.CASCADE)
     Answer     = models.TextField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 class User(models.Model):
     idUSer       = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -53,9 +71,15 @@ class User(models.Model):
     passwordUser = models.TextField(max_length=100)
     replayDate   = models.DateTimeField(auto_now_add=True) # date de la création de l'objet et donc de réponse au Form
 
+    def __str__(self):
+        return self.name
+
 class UserAnswer(models.Model):
     idUserAnswer = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     user         = models.ForeignKey(User    , on_delete=models.CASCADE)
     question     = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer       = models.ForeignKey(Answer  , on_delete=models.CASCADE)
     text         = models.TextField(max_length=100)
+
+    def __str__(self):
+        return self.name

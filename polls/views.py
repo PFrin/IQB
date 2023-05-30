@@ -109,14 +109,19 @@ def login(request):
       'message': message
     }
   except Customer.DoesNotExist:
-    raise Http404("Question does not exist")
+    raise Http404("Customers does not exist")
   return HttpResponse(template.render(context, request))
 
 def register(request):
-  return render(request, 'polls/register.html')
+  form = CustomerCreationForm()
+  if form.is_valid():
+    form.save()
+    return 
+  return redirect(request, 'polls/register.html')
 
 def logout(request):
   logout(request)
+  pass
 
 
 

@@ -36,9 +36,13 @@ class CreateQuestion(forms.Form):
 ############################################
 
 class LoginForm(AuthenticationForm):
-    class Meta:
-        model = Customer
-        fields = ['username', 'password']
+    username = forms.CharField()
+    password = forms.CharField()
+
+class CustomerCreationForm(forms.ModelForm):
+    mailCust       = models.TextField(max_length=100)
+    loginCust      = models.CharField(max_length=100)
+    
 
 
 ############################################
