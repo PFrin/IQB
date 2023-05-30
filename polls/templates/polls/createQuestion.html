@@ -1,0 +1,8 @@
+<center>
+        <form method="POST" action"{% url 'create' %}">
+            {% crsf_token %}
+            {{ form.as_p}}
+
+            <Button type="submit">Save</button>
+        </form>
+</center>

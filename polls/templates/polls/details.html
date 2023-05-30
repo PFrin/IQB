@@ -1,0 +1,94 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>IODA Group IQB</title>
+        <meta name="description" content="implémentation d'un backoffice. Conception, mise en production de formulaire "/>
+        <link rel="canonical" href="https://www.iodagroup.com/"/>
+        <meta property="og:locale" content="fr_FR"/>
+        <meta property="og:type" content="website"/>
+        <meta property="og:title" content="IODA Group Question Backoffice"/>
+        <meta property="og:description" content="implémentation d'un backoffice. Conception, mise en production de formulaire "/>
+        <meta property="og:site_name" content="IODA Group IQB"/>
+
+        <link rel="icon" href="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-32x32.png" sizes="32x32"/>
+        <link rel="icon" href="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-192x192.png" sizes="192x192"/>
+        <link rel="apple-touch-icon" href="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-180x180.png"/>
+        <meta name="msapplication-TileImage" content="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-270x270.png"/>
+        <link href="https://fonts.googleapis.com/css?family=Oswald:100,200,300,400,500,600,700,800,900|Poppins:100,200,300,400,500,600,700,800,900" rel="stylesheet">
+
+    <style>
+        body{
+            background-color: #FFDADA;
+        }
+        .card {
+        box-shadow: 0 10px 20px 0 rgba(0,0,0,0.9);
+        transition: 0.3s;
+        width: 40%;
+        border-radius: 5px;
+        background-color: white;
+        }
+
+        .card:hover {
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        }
+
+        img {
+        border-radius: 5px 5px 0 0;
+        }
+
+        .container {
+        padding: 2px 16px;
+        }
+    </style>
+    </head>
+
+
+<body class="navbar navbar-expend-lg navbar-light">
+    <header id="_header-1-7" class="oxy-header-wrapper oxy-overlay-header oxy-header">
+    </header>
+
+    <h1>Détails du client</h1>
+    <p><strong>Id:      </strong> {{ myCustomer.idCustomer   }}</p>
+    <p><strong>E-mail:  </strong> {{ myCustomer.mailCust     }}</p>
+    <p><strong>Login:   </strong> {{ myCustomer.loginCust    }}</p>
+    <p><strong>Password:</strong> {{ myCustomer.passwordCust }}</p>
+
+
+    {% for x in myOnlineForm%}
+    <h1>Mes Formulaires en ligne :</h1>
+    {% endfor %}
+    {% for x in myOnlineForm %}
+    <div class="card">
+    <h2><strong>title:           </strong> {{ x.title            }}</h2>
+    <p><strong>Id:              </strong> {{ x.idForm           }}</p>
+    <p><strong>CreationDate:    </strong> {{ x.CreationDate     }}</p>
+    <p><strong>MEPDate:         </strong> {{ x.MEPDate          }}</p>
+    <p><strong>lastModifiedDate:</strong> {{ x.lastModifiedDate }}</p>
+    <p><strong>isOnline:        </strong> {{ x.isOnline         }}</p>
+    <p><strong>Customer:        </strong> {{ x.Customer         }}</p>
+    </div>
+    {% endfor %}
+    <hr>
+    
+    <h1>Mes Formulaires en Construction :</h1>
+    {% for x in myFormUnderConstruction %}
+    <div class="card">
+    <h2><strong>title:          </strong> {{ x.title            }}</h2>
+    <p><strong>Id:              </strong> {{ x.idForm           }}</p>
+    <p><strong>CreationDate:    </strong> {{ x.CreationDate     }}</p>
+    <p><strong>MEPDate:         </strong> {{ x.MEPDate          }}</p>
+    <p><strong>lastModifiedDate:</strong> {{ x.lastModifiedDate }}</p>
+    <p><strong>isOnline:        </strong> {{ x.isOnline         }}</p>
+    <p><strong>Customer:        </strong> {{ x.Customer         }}</p>
+    </div>
+    {% endfor %}
+    <hr>
+
+    <h1>Créer un formulaire</h1>
+    <a href="./CreateForm"><div class="card"> 
+        <p>nouveau form</p>
+    </div></a>
+    
+</body>
+</html>
