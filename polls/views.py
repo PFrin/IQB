@@ -9,8 +9,7 @@ from django.template import loader
 from polls.models import Customer
 from .models import User
 from django.shortcuts import render
-from .models import Customer
-from .models import Form
+from .models import *
 from django.contrib.auth.decorators import login_required
 from polls.allForms import CustomerCreationForm, LoginForm, CreateForm, CreateQuestion
 
@@ -55,13 +54,13 @@ def details(request, loginCust):
   return HttpResponse(template.render(context, request))
 
 
-#def details(request, loginCust):
-#  myCustomer = Customer.objects.get(loginCust=loginCust)
-#  template = loader.get_template('polls/details.html')
-#  context = {
-#    'myCustomer': myCustomer,
-#  }
-#  return HttpResponse(template.render(context, request))
+def Question(request):
+  myType = Type.objects.all()
+  template = loader.get_template('polls/createQuestion.html')
+  context = {
+    'myType': myType,
+  }
+  return HttpResponse(template.render(context, request))
 
 
 
@@ -70,9 +69,9 @@ def formCreate(request):
   form = CreateForm()
   return render(request, 'polls/Create.html',{'form' : form})
 
-def questionCreate(request):
-  form = CreateQuestion()
-  return render(request, 'polls/CreateQuestion.html',{'form' : form})
+#def questionCreate(request):
+#  form = CreateQuestion()
+#  return render(request, 'polls/CreateQuestion.html',{'form' : form})
 
 
 ##############################

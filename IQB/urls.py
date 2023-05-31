@@ -37,6 +37,10 @@ urlpatterns = [
     path('register',views.register, name='register'),
     path("admin/", admin.site.urls),
     
+    #test et debug
+    path('createQuestion/', views.Question, name='Question'),
+    
+    
 
     #test et debug
     path('details/<str:loginCust>/', views.details, name='details'),        #http://127.0.0.1:8000/details/cust1/

@@ -1,8 +1,38 @@
-<center>
-        <form method="POST" action"{% url 'create' %}">
-            {% crsf_token %}
-            {{ form.as_p}}
 
-            <Button type="submit">Save</button>
-        </form>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>IODA Group IQB</title>
+        <meta name="description" content="implémentation d'un backoffice. Conception, mise en production de formulaire "/>
+        <link rel="canonical" href="https://www.iodagroup.com/"/>
+        <meta property="og:locale" content="fr_FR"/>
+        <meta property="og:type" content="website"/>
+        <meta property="og:title" content="IODA Group Question Backoffice"/>
+        <meta property="og:description" content="implémentation d'un backoffice. Conception, mise en production de formulaire "/>
+        <meta property="og:site_name" content="IODA Group IQB"/>
+
+        <link rel="icon" href="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-32x32.png" sizes="32x32"/>
+        <link rel="icon" href="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-192x192.png" sizes="192x192"/>
+        <link rel="apple-touch-icon" href="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-180x180.png"/>
+        <meta name="msapplication-TileImage" content="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-270x270.png"/>
+        <link href="https://fonts.googleapis.com/css?family=Oswald:100,200,300,400,500,600,700,800,900|Poppins:100,200,300,400,500,600,700,800,900" rel="stylesheet">
+
+    <style>
+        
+    </style>
+    </head><center>
+<body class="navbar navbar-expend-lg navbar-light">
+    <h1>Type de question</h1>
+    <label for="pet-select">Choose a type:</label>
+
+<select name="pets" id="pet-select">
+    {% for x in myType%}
+    <option value="">--Please choose an option--</option>
+    <option value="{{ x.idType}}"> {{ x.typeQuestion}}</option>
+    {% endfor %}
+</select>
+
+</body>
 </center>
+</html>
