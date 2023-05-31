@@ -36,7 +36,7 @@ class CreateQuestion(forms.Form):
 ############################################
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField(widget=forms.TextInput    (attrs={'placeholder': 'Nom d\'utilisateur'}))
+    username = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Nom d\'utilisateur'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Mot de passe'}))
 
     def clean_username(self):
@@ -47,7 +47,7 @@ class LoginForm(AuthenticationForm):
 
 
 class CustomerCreationForm(forms.Form):
-    mailCust       = forms.CharField(widget=forms.EmailField(attrs={'placeholder': 'mail'}))
+    mailCust       = forms.CharField(widget=forms.EmailInput(attrs={'placeholder': 'mail'}))
     loginCust      = forms.CharField()
 
 

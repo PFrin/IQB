@@ -40,7 +40,7 @@ class Page(models.Model):
     number = models.IntegerField()
     Form   = models.ForeignKey(Form, on_delete=models.CASCADE)
 
-    def __str__(self):
+    def __int__(self):
         return self.number
 
 class Question(models.Model):
@@ -62,7 +62,7 @@ class Answer(models.Model):
     Answer     = models.TextField(max_length=100)
 
     def __str__(self):
-        return self.idQuestion
+        return str(self.idQuestion)
 
 class User(models.Model):
     idUSer       = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -82,4 +82,4 @@ class UserAnswer(models.Model):
     text         = models.TextField(max_length=100)
 
     def __str__(self):
-        return self.idUserAnswer
+        return self.text
