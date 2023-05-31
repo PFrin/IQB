@@ -8,7 +8,7 @@ class Type(models.Model):
     typeQuestion  = models.TextField(max_length=100)
 
     def __str__(self):
-        return self.name
+        return self.typeQuestion
 
 class Customer(AbstractBaseUser):
     idCustomer     = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -19,7 +19,7 @@ class Customer(AbstractBaseUser):
     EMAIL_FIELD    = 'mailCust'
 
     def __str__(self):
-        return self.name
+        return self.loginCust
 
 class Form(models.Model):
     idForm           = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -33,7 +33,7 @@ class Form(models.Model):
     Customer         = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.title
 
 class Page(models.Model):
     idPage = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -41,7 +41,7 @@ class Page(models.Model):
     Form   = models.ForeignKey(Form, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.number
 
 class Question(models.Model):
     idQuestion = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -53,7 +53,7 @@ class Question(models.Model):
     nbrAnswerMax = models.IntegerField()
 
     def __str__(self):
-        return self.name
+        return self.title
 
 class Answer(models.Model):
     idQuestion = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -62,7 +62,7 @@ class Answer(models.Model):
     Answer     = models.TextField(max_length=100)
 
     def __str__(self):
-        return self.name
+        return self.idQuestion
 
 class User(models.Model):
     idUSer       = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -72,7 +72,7 @@ class User(models.Model):
     replayDate   = models.DateTimeField(auto_now_add=True) # date de la création de l'objet et donc de réponse au Form
 
     def __str__(self):
-        return self.name
+        return self.loginUser
 
 class UserAnswer(models.Model):
     idUserAnswer = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -82,4 +82,4 @@ class UserAnswer(models.Model):
     text         = models.TextField(max_length=100)
 
     def __str__(self):
-        return self.name
+        return self.idUserAnswer

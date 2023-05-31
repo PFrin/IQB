@@ -36,13 +36,20 @@ class CreateQuestion(forms.Form):
 ############################################
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField()
-    password = forms.CharField()
+    username = forms.CharField(widget=forms.TextInput    (attrs={'placeholder': 'Nom d\'utilisateur'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Mot de passe'}))
 
-class CustomerCreationForm(forms.ModelForm):
-    mailCust       = models.TextField(max_length=100)
-    loginCust      = models.CharField(max_length=100)
-    
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Ce nom d'utilisateur est déjà utilisé.")
+        return username
+
+
+class CustomerCreationForm(forms.Form):
+    mailCust       = forms.CharField(widget=forms.EmailField(attrs={'placeholder': 'mail'}))
+    loginCust      = forms.CharField()
+
 
 
 ############################################

@@ -38,8 +38,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     
 
-    #path("Customer/<str:login>", views.CreateForm, login='login'),
-
     #test et debug
     path('details/<str:loginCust>/', views.details, name='details'),        #http://127.0.0.1:8000/details/cust1/
     #Vu Client 

@@ -12,7 +12,7 @@ from django.shortcuts import render
 from .models import Customer
 from .models import Form
 from django.contrib.auth.decorators import login_required
-from polls.allForms import LoginForm, CreateForm, CreateQuestion
+from polls.allForms import CustomerCreationForm, LoginForm, CreateForm, CreateQuestion
 
 def CreateForm(request,loginCust):
   myCustomer = Customer.objects.get(loginCust=loginCust)
@@ -30,8 +30,6 @@ def CreateForm(request,loginCust):
 #  }
 #  return HttpResponse(template.render(context, request))         
 
-def home(request):
-  return HttpResponse('bonjour à tous')
 
 #http://127.0.0.1:8000/details/cust1/
 @login_required
@@ -84,22 +82,21 @@ def questionCreate(request):
 def home(request):
   return render(request, 'polls/index.html')
 
-def login(request):
+def loginView(request):
   try:
     form = LoginForm()
     message = ''
     if request.method == 'POST':
       form = LoginForm(request.POST)
       if form.is_valid():
-        Customer = authenticate(
-          username=form.cleaned_data['loginCust'],
-          password=form.cleaned_data['password'],
-        )
+        username=form.cleaned_data['loginCust'],
+        password=form.cleaned_data['password'],
+        Customer = authenticate(request, username=username, password=password)
         if Customer is not None:
           login(request, Customer)
           print(Customer.get_username + "user ")
           message = 'Identifiants valide.'
-          return redirect("./"+Customer.get_username)
+          return redirect("./"+username)
         else:
           message = 'Identifiants invalides.'
     
