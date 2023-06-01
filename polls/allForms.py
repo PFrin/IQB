@@ -18,6 +18,10 @@ class CreateQuestion(forms.Form):
     #type  = models.ForeignKey(Type, on_delete=models.CASCADE)
     #page  = models.ForeignKey(Page, on_delete=models.CASCADE)
     isObligatory = forms.BooleanField()
+    #nbrAnswerMin = forms.IntegerField()
+    #nbrAnswerMax = forms.IntegerField()
+
+class nbrAnswer(forms.Form):
     nbrAnswerMin = forms.IntegerField()
     nbrAnswerMax = forms.IntegerField()
 

@@ -19,19 +19,77 @@
         <link href="https://fonts.googleapis.com/css?family=Oswald:100,200,300,400,500,600,700,800,900|Poppins:100,200,300,400,500,600,700,800,900" rel="stylesheet">
 
     <style>
-        
+        .Question{
+            backgroundColor : grey,
+            margin top : 10px;
+        }
     </style>
+
+    <script>
+        function showFields() {
+            var select = document.getElementById("type-select");
+            var selectedOption = select.options[select.selectedIndex].text;
+            let btn = document.getElementById("Submit")
+
+
+            let responseMinInput = document.getElementById("response-min");
+            let responseMaxInput = document.getElementById("response-max");
+
+            if (selectedOption === "choix multiple") {
+                responseMinInput.style.display = "block";
+                responseMaxInput.style.display = "block";
+                //nbrréponseMin = ?
+                //nbréponseMax  = ? 
+                //4 propositions de réponse
+            } else if (selectedOption === "Choix unique") {
+                responseMinInput.style.display = "";
+                responseMaxInput.style.display = "";
+                //4 propositions de réponse
+                //______
+                //nbrréponseMin = 1
+                //nbréponseMax = 1
+            } else if (selectedOption === "Question à échelle") {
+                //nbrréponseMin = ?
+                //nbréponseMax  = ? 
+                //4 propositions de réponse [1,2,3,4]
+            } else if (selectedOption === "question ouverte") {
+                //nbrréponseMin = null
+                //nbréponseMax = null
+                //0 propositions de réponse
+                //______
+                //champs disable
+                
+            }
+        }
+
+        function addQuestion(){
+            //récupérer les infos de Question 1 
+            //copier et transformer en Question 2
+                // --> le but est de partir des tables et donc un formulaire dynamique en fonction du client
+        }
+    </script>
+
     </head><center>
 <body class="navbar navbar-expend-lg navbar-light">
     <h1>Type de question</h1>
-    <label for="pet-select">Choose a type:</label>
-
-<select name="pets" id="pet-select">
-    {% for x in myType%}
-    <option value="">--Please choose an option--</option>
-    <option value="{{ x.idType}}"> {{ x.typeQuestion}}</option>
-    {% endfor %}
-</select>
+    
+<div style="background-color:grey">
+    <form method="post">
+        <label for="type-select">Choose a type:</label>
+        <select name="type" id="type-select" onchange="showFields();">
+            {% for x in myType%}
+            <option value="{{ x.typeQuestion}}"> {{ x.typeQuestion}}</option>
+            {% endfor %}
+        </select>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="Remove" id="Remove">Suppriler</button>
+        <button type="Submit" id="modify">Modifier</button>
+        <button type="Submit" id="Submit">Valider</button>
+        <!-- Si btn déjà valider changer en btn Modifier -->
+    </form>
+</div>
+    <button type="Submit" id="addQuestion">Ajouter une Question</button>
 
 </body>
 </center>

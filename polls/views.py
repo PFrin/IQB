@@ -55,13 +55,30 @@ def details(request, loginCust):
 
 
 def Question(request):
-  myType = Type.objects.all()
+  form = CreateQuestion()
+  message = ''
+  if request.method=='POST':
+    form = CreateQuestion(request.POST)
+    if form.is_valid():
+      title        = form.cleaned_data['title'],
+      isObligatory = form.cleaned_data['isObligatory'],
+
+    else:
+      message = "formulaire invalide"
+
   template = loader.get_template('polls/createQuestion.html')
+  myType = Type.objects.all()
+  myForm = Form.objects.all()
   context = {
+    'form' : form,
     'myType': myType,
   }
   return HttpResponse(template.render(context, request))
 
+#def nbr(request):
+#  form = nbrAnswer()
+#  nbrAnswerMin = form.cleaned_data['nbrAnswerMin'],
+#  nbrAnswerMax = form.cleaned_data['nbrAnswerMax'],
 
 
 
