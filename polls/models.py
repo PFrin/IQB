@@ -23,7 +23,7 @@ class Customer(AbstractBaseUser):
 
 class Form(models.Model):
     idForm           = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
-    title            = models.TextField(max_length=100)
+    titleForm        = models.TextField(max_length=100)
     introText        = models.TextField(max_length=100, default="Binevenue sur notre formulaire.")
     concludingText   = models.TextField(max_length=100, default="Merci d\'avoir rempli notre formulaire.")
     CreationDate     = models.DateTimeField(auto_now_add=True)  # date de la création de l'objet
@@ -56,7 +56,7 @@ class Question(models.Model):
         return self.title
 
 class Answer(models.Model):
-    idQuestion = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
+    idAnswer   = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     type       = models.ForeignKey(Type    , on_delete=models.CASCADE)
     Question   = models.ForeignKey(Question, on_delete=models.CASCADE)
     Answer     = models.TextField(max_length=100)
