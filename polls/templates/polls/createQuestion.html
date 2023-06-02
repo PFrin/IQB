@@ -91,6 +91,26 @@
 </div>
     <button type="Submit" id="addQuestion">Ajouter une Question</button>
 
+
+    <hr>
+
+    {% for form in pages %}
+    <h2>{{ form.form.title }}</h2>
+    
+        {% for page in form.pages %}
+            <h3>Page {{ page.page.number }}</h3>
+            
+            {% for question in page.questions %}
+                <h4>{{ question.question.title }}</h4>
+                
+                {% for answer in question.answers %}
+                    <p>{{ answer.Answer }}</p>
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+    {% endfor %}
+
+
 </body>
 </center>
 </html>

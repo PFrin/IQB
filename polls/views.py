@@ -54,24 +54,34 @@ def details(request, loginCust):
   return HttpResponse(template.render(context, request))
 
 
-def Question(request):
-  form = CreateQuestion()
-  message = ''
-  if request.method=='POST':
-    form = CreateQuestion(request.POST)
-    if form.is_valid():
-      title        = form.cleaned_data['title'],
-      isObligatory = form.cleaned_data['isObligatory'],
-
-    else:
-      message = "formulaire invalide"
-
+def QuestionView(request):
   template = loader.get_template('polls/createQuestion.html')
   myType = Type.objects.all()
-  myForm = Form.objects.all()
+  myForm = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
+
+  info_form = []
+
+  myPages = Page.objects.filter(Form=myForm)
+  print (myPages)
+  form_data = {
+    'form': myForm,
+    'pages': []
+  }
+
+  #for page in myPages:
+  #  myQuestions = Question.objects.filter(Form=myForm)
+  #  page_data = {
+  #      'page': page,
+  #      'questions': myQuestions
+  #  }
+  #  form_data['pages'].append(page_data)
+
+  info_form.append(form_data)
+
   context = {
-    'form' : form,
     'myType': myType,
+    'myForm' : myForm,
+    'info_form' : info_form,
   }
   return HttpResponse(template.render(context, request))
 
@@ -110,7 +120,7 @@ def loginView(request):
         Customer = authenticate(request, username=username, password=password)
         if Customer is not None:
           login(request, Customer)
-          print(Customer.get_username + "user ")
+          #print(Customer.get_username + "user ")
           message = 'Identifiants valide.'
           return redirect("./"+username)
         else:

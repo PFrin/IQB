@@ -38,7 +38,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     
     #test et debug
-    path('createQuestion/', views.Question, name='Question'),
+    path('createQuestion/', views.QuestionView, name='QuestionView'),
     
     
 
