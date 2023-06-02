@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from pathlib import Path
+from pymongo import MongoClient
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -83,17 +84,16 @@ WSGI_APPLICATION = 'IQB.wsgi.application'
 #}
 
 
+
 DATABASES = {  
     'default': {  
-        'ENGINE': 'django.db.backends.mysql',  
-        'NAME': 'data_IQB',  
+        'ENGINE': 'djongo',  
+        'NAME': 'iqb',  
         'USER': 'root',  
-        'PASSWORD': 'IODAIQB2023',  
-        'HOST': '127.0.0.1',  
-        'PORT': '3306',  
-        'OPTIONS': {  
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"  
-        }  
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+                'host': 'mongodb+srv://root:lkCgKezyBCzkgrmL@iqb.vflesfl.mongodb.net/'
+            } 
     }  
 }  
 
