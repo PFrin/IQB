@@ -57,6 +57,7 @@ def details(request, loginCust):
 def QuestionView(request):
   template = loader.get_template('polls/createQuestion.html')
   myType = Type.objects.all()
+  form = CreateQuestion()
   myForm = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
 
   info_form = []
@@ -68,19 +69,28 @@ def QuestionView(request):
     'pages': []
   }
 
-  #for page in myPages:
-  #  myQuestions = Question.objects.filter(Form=myForm)
-  #  page_data = {
-  #      'page': page,
-  #      'questions': myQuestions
-  #  }
-  #  form_data['pages'].append(page_data)
+  for page in myPages:
+    myQuestions = Question.objects.filter(page=page)
+    page_data = {
+        'page': page,
+        'questions': []
+    }
+
+    for question in myQuestions:
+      myAnswers = Answer.objects.filter(Question=question)
+      question_data = {
+          'question': question,
+          'answers': myAnswers
+      }
+                
+      page_data['questions'].append(question_data)
+    form_data['pages'].append(page_data)
 
   info_form.append(form_data)
 
   context = {
     'myType': myType,
-    'myForm' : myForm,
+    'form' : form,
     'info_form' : info_form,
   }
   return HttpResponse(template.render(context, request))

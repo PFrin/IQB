@@ -83,9 +83,8 @@
         </select>
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="Remove" id="Remove">Suppriler</button>
-        <button type="Submit" id="modify">Modifier</button>
-        <button type="Submit" id="Submit">Valider</button>
+        <button type="Remove" id="Remove">Supprimer</button>
+        <button type="Submit" id="dupliquer">dupliquer</button>
         <!-- Si btn déjà valider changer en btn Modifier -->
     </form>
 </div>
@@ -93,22 +92,39 @@
 
 
     <hr>
-
-    {% for form in pages %}
-    <h2>{{ form.form.title }}</h2>
     
+    {% for form in info_form %}
+        <h2>titre :{{ form.form.title }}</h2>
+
         {% for page in form.pages %}
             <h3>Page {{ page.page.number }}</h3>
-            
+            <form method="post">
+            <hr>
             {% for question in page.questions %}
-                <h4>{{ question.question.title }}</h4>
-                
+                <textarea>{{ question.question.title }}</textarea>
+                <input type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>isObligatory</input>
+                <p>{{ question.question.nbrAnswerMin }}</p>
+                <p>{{ question.question.nbrAnswerMax }}</p>  <!-- lst déroulante en fonction du nbr de propositions de questions-->
+
+                <label for="type-select">Choose a type:</label>
+                <select name="type" id="type-select" onchange="showFields();">
+                    {% for x in myType%}
+                    <option value="{{ x.typeQuestion}}"> {{ x.typeQuestion}}</option>
+                    {% endfor %}
+                </select>
+
                 {% for answer in question.answers %}
-                    <p>{{ answer.Answer }}</p>
+                    <p>prop réponse :{{ answer.Answer }}</p>
+
                 {% endfor %}
+                <button type="Remove" id="Remove">Supprimer</button>
+                <button type="Submit" id="dupliquer">dupliquer</button>
+            </form>
+            <hr>
             {% endfor %}
         {% endfor %}
     {% endfor %}
+    
 
 
 </body>
