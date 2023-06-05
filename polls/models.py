@@ -29,11 +29,11 @@ class Form(models.Model):
     CreationDate     = models.DateTimeField(auto_now_add=True)  # date de la création de l'objet
     MEPDate          = models.DateTimeField()
     lastModifiedDate = models.DateTimeField(auto_now=True)      # date de la derniere modification de l'objet
-    isOnline         = models.BooleanField (default="false")
+    isOnline         = models.BooleanField (default="False")
     Customer         = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
+        return self.titleForm
 
 class Page(models.Model):
     idPage = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)

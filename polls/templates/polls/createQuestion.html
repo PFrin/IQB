@@ -18,126 +18,204 @@
         <meta name="msapplication-TileImage" content="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-270x270.png"/>
         <link href="https://fonts.googleapis.com/css?family=Oswald:100,200,300,400,500,600,700,800,900|Poppins:100,200,300,400,500,600,700,800,900" rel="stylesheet">
 
-    <style>
-        .Question{
-            backgroundColor : grey,
-            margin top : 10px;
-        }
-    </style>
-
-    <script>
-        function showFields() {
-            var select = document.getElementById("type-select");
-            var selectedOption = select.options[select.selectedIndex].text;
-            let btn = document.getElementById("Submit")
-
-
-            let responseMinInput = document.getElementById("response-min");
-            let responseMaxInput = document.getElementById("response-max");
-
-            if (selectedOption === "choix multiple") {
-                responseMinInput.style.display = "block";
-                responseMaxInput.style.display = "block";
-                //nbrréponseMin = ?
-                //nbréponseMax  = ? 
-                //4 propositions de réponse
-            } else if (selectedOption === "Choix unique") {
-                responseMinInput.style.display = "";
-                responseMaxInput.style.display = "";
-                //4 propositions de réponse
-                //______
-                //nbrréponseMin = 1
-                //nbréponseMax = 1
-            } else if (selectedOption === "Question à échelle") {
-                //nbrréponseMin = ?
-                //nbréponseMax  = ? 
-                //4 propositions de réponse [1,2,3,4]
-            } else if (selectedOption === "question ouverte") {
-                //nbrréponseMin = null
-                //nbréponseMax = null
-                //0 propositions de réponse
-                //______
-                //champs disable
-                
+        <style>
+            .Question {
+                background-color: grey;
+                margin-top: 10px;
             }
-        }
+        </style>
 
-        function addQuestion(){
-            //récupérer les infos de Question 1 
-            //copier et transformer en Question 2
-                // --> le but est de partir des tables et donc un formulaire dynamique en fonction du client
-        }
-    </script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    </head><center>
-<body class="navbar navbar-expend-lg navbar-light">
-    <h1>Création/modification Form</h1>
-    
-<!--
-<div style="background-color:grey">
-    <form method="post">
-        <label for="type-select">Choose a type:</label>
-        <select name="type" id="type-select" onchange="showFields();">
-            {% for x in myType%}
-            <option value="{{ x.typeQuestion}}"> {{ x.typeQuestion}}</option>
-            {% endfor %}
-        </select>
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="Remove" id="Remove">Supprimer</button>
-        <button type="Submit" id="dupliquer">dupliquer</button>
-         Si btn déjà valider changer en btn Modifier
-    </form>
-</div>
-    
---> 
+        <script>
+            $(document).ready(function() {
+                console.log("prêt");
+                $('.key').change(function() {
+                    var key_question = $(this).closest('.question').attr('id');
+                    var key_page = $(this).closest('.page').attr('id'); 
+                    var key_value;
+                    var key_id = $(this).attr('id');
+                    var key_type = "question"
+                    //var key_type = $(this).closest('.question').attr('id');
+                    var key_name = $(this).attr('name');
+                    console.log("changement")
 
-    <hr>
-    {% for form in info_form %}
-        <h2>titre :{{ form.form.title }}</h2>
+                    if ($(this).is('input[type="checkbox"]')) { // checkbox
+                        key_value = $(this).is(':checked');
+                        console.log(key_value)
+                    } else if ($(this).is('select')) {
+                        key_value = $(this).val(key_type);
+                    } else {
+                        key_value = $(this).val();
+                    }
+                    
 
-        {% for page in form.pages %}
-            <div id='allPages'>
-                <h3>Page {{ page.page.number }}</h3>
-                <div id="{{ page.page.idPage }}" class="page">
-                    <hr>
-                    {% for question in page.questions %}
-                    <form method="post">
-                        {% csrf_token %}
-                        <div id="{{ question.question.idQuestion }}" class="question">
-                            <textarea>{{ question.question.title }}</textarea>
-                            <input type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>isObligatory</input>
-                            <p>{{ question.question.nbrAnswerMin }}</p>
-                            <p>{{ question.question.nbrAnswerMax }}</p>  <!-- lst déroulante en fonction du nbr de propositions de questions-->
+                    console.log("Nouvelle valeur de l'élément avec l'ID '" + key_id + "': " + key_value);
 
-                            <label for="type-select">Choose a type:</label>
-                            <select name="type" id="type-select" onchange="showFields();">
-                                {% for x in myType%}
-                                <option value="{{ x.typeQuestion}}"> {{ x.typeQuestion}}</option>
-                                {% endfor %}
-                            </select>
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url "QuestionView" %}', // l'URL vue Django
+                        data: {
+                            'action': "update",
+                            'key_value': key_value, 
+                            'key_id': key_id,
+                            'key_type': key_type,
+                            'key_page':key_page,
+                            'key_question':key_question,
+                            'key_name':key_name
+                            
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                console.log("succes");
+                            } else {
+                                console.log("echec");
+                            }
+                        }
+                    });
+                });
+            });
 
-                            {% for answer in question.answers %}
-                            <div id="{{ answer.idAnswer }}" class="reponse">
-                                <p>prop réponse :{{ answer.Answer }}</p>
-                            </div >
-                            {% endfor %}
-                            <button type="Remove" id="Remove">Supprimer</button>
-                            <button type="Submit" id="dupliquer">dupliquer</button>
+            function duplicateQuestion(btn) {
+                var key_page = $(btn).closest('.page').attr('id');
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    data: {
+                        'action': "duplicateQuestion",
+                        'key_page':key_page
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            //créer la page dynamiquement ou refresh la page
+                            location.reload()
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
 
-                        </div>
-                    </form>
-                    <hr>
-                    {% endfor %}
-                </div>
-            </div>
-        {% endfor %}
-    {% endfor %}
+            function addQuestion(btn) {
+                var key_page = $(btn).closest('.page').attr('id');
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    data: {
+                        'action': "addQuestion",
+                        'key_page':key_page
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            //créer la page dynamiquement ou refresh la page
+                            location.reload()
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
+
+            function removeQuestion(btn){
+                var key_question = $(btn).closest('.question').attr('id');
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    data: {
+                        'action': "removeQuestion",
+                        'question_id':key_question
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            //surpimer la question dynamiquement ou refresh la page
+                            location.reload()
+
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
+            
+                
+        </script>
+
+    </head>
+    <center>
+        <body class="navbar navbar-expend-lg navbar-light">
+            <h1>Création/modification Form</h1>
+            
+    <!--
+    <div style="background-color:grey">
+        <form method="post">
+            <label for="type-select">Choose a type:</label>
+            <select name="type" id="type-select" onchange="showFields();">
+                {% for x in myType%}
+                <option value="{{ x.typeQuestion}}"> {{ x.typeQuestion}}</option>
+                {% endfor %}
+            </select>
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="Remove" id="Remove">Supprimer</button>
+            <button type="Submit" id="dupliquer">dupliquer</button>
+            Si btn déjà valider changer en btn Modifier
+        </form>
     </div>
-    <button type="Submit" id="addQuestion">Ajouter une Question</button>
-    
+        
+    --> 
+
+            <hr>
+            {% for form in info_form %}
+                <h2 class="key" name ="{{ form.form.titleForm.name }}">titre :{{ form.form.titleForm }}</h2> <!-- titleForm   class   name -->
+
+                {% for page in form.pages %}
+                    <div id='allPages'>
+                        <h3 class="page">Page {{ page.page.number }}</h3> 
+                        <div id="{{ page.page.idPage }}" class="page">
+                            
+                            {% for question in page.questions %}
+                            <form method="post">
+                                {% csrf_token %}
+                                <div id="{{ question.question.idQuestion }}" class="question">
+                                    <input name="{{ form.form.titleForm.title }}" type="text" class="key" value="{{ question.question.title }}">    <!-- title   class   name -->
+                                    <br>
+                                    <input id="{{ question.question.idQuestion }}" class="key" name="{{ question.question.idQuestion.name }}" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>isObligatory</input> <!-- isObligatory   class   name id -->
+                                    <br>
+                                    <label for="type-select">Choose a type:</label>
+                                    <select name="type" id="type-select" class="key">
+                                        {% for x in myType%}
+                                        <option value="{{ x.typeQuestion}}"> {{ x.typeQuestion}}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                    <p class="key">nbr réponse Min :{{ question.question.nbrAnswerMin }}</p>
+                                    <p class="key">nbr réponse Max :{{ question.question.nbrAnswerMax }}</p>  <!-- lst déroulante en fonction du nbr de propositions de questions-->
+
+                                    {% for answer in question.answers %}
+                                    <div id="{{ answer.idAnswer }}" class="reponse">
+                                        <input type="text" class="key" value="{{ answer.Answer }}">
+                                    </div >
+                                    {% endfor %}
+                                    <button type="button" id="{{ question.question.idQuestion }}" onclick="removeQuestion(this);">Supprimer</button>
+                                    <button type="button" id="{{ question.question.idQuestion }}" onclick="duplcate(this);">dupliquer</button>
+
+                                </div>
+                            </form>
+                            {% endfor %}
+                        <button type="Submit" id="addQuestion" onclick="addQuestion(this);">Ajouter une Question</button>
+                        <hr>
+                        </div>
+                    </div>
+                    
+                {% endfor %}
+            {% endfor %}
+            </div>
+            
 
 
-</body>
-</center>
+        </body>
+    </center>
 </html>

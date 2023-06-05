@@ -2,6 +2,8 @@ from imaplib import _Authenticator
 from django import forms
 from django.shortcuts import redirect, render
 from django.contrib.auth import login, authenticate
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 from django.http import Http404, HttpResponse
@@ -54,46 +56,135 @@ def details(request, loginCust):
   return HttpResponse(template.render(context, request))
 
 
+
+@csrf_exempt
 def QuestionView(request):
-  template = loader.get_template('polls/createQuestion.html')
-  myType = Type.objects.all()
-  form = CreateQuestion()
-  myForm = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
+  #valeurs par défault
+  defaultType = Type.objects.get(typeQuestion='Choix unique')
+  if request.method == "POST":  # Modifier cette ligne
+    action = request.POST.get("action")
+    if (action == "update"):
+      key_question = request.POST.get("key_question")
+      key_value = request.POST.get("key_value")
+      key_id = request.POST.get("key_id")
+      key_type = request.POST.get("key_type")
+      key_page = request.POST.get("key_page")
+      key_name = request.POST.get("key_name")
+      
+      my_model_instance = None
 
-  info_form = []
+      ##vérification des champs
+      #vérif form
+      #mise a jour des champs :
+      if key_value == "false":
+        key_value = False
+      if key_value == "true":
+        key_value = True
 
-  myPages = Page.objects.filter(Form=myForm)
-  print (myPages)
-  form_data = {
-    'form': myForm,
-    'pages': []
-  }
 
-  for page in myPages:
-    myQuestions = Question.objects.filter(page=page)
-    page_data = {
-        'page': page,
-        'questions': []
+      if key_type == "form":
+        my_model_instance = Form.objects.get(idForm=key_id)
+        if (key_name == "titleForm"):
+          pass 
+        elif key_name == "introText":
+          pass
+        elif key_name == "concludingText":
+          pass
+        elif key_name == "introText":
+          pass
+        elif key_name == "MEPDate":
+          pass
+        elif key_name == "isOnline":
+          pass
+      elif key_type == "page":
+        my_model_instance = Page.objects.get(idPage=key_id)
+        #number
+      elif key_type == "question":
+        my_model_instance = Question.objects.get(idQuestion=key_question)
+        print(key_name)
+        if (key_name == "title"):
+          my_model_instance.title = key_value
+        elif key_name == "type":
+          my_model_instance.type = Type.objects.get(typeQuestion=key_value)
+        elif key_name == "page":
+          pass
+        elif key_name == "isObligatory":
+          my_model_instance.isObligatory = key_value
+        elif key_name == "nbrAnswerMin":
+          pass
+        elif key_name == "nbrAnswerMax":
+          pass
+      elif key_type == "answer":
+        my_model_instance = Answer.objects.get(idAnswer=key_id)
+          #type
+          #Answer
+      
+      if (my_model_instance != None):
+        my_model_instance.save()
+
+    if (action == "addQuestion"):
+      key_page = request.POST.get("key_page")
+      question = Question.objects.create(
+        title="Question suivante",
+        type_id=defaultType.idType,
+        page_id=key_page,
+        isObligatory=True,
+        nbrAnswerMin=1,
+        nbrAnswerMax=2,
+      )
+      print(question)
+      question.save()
+    
+    if (action== "removeQuestion"):
+      question_id = request.POST.get('question_id')
+      question = Question.objects.get(idQuestion=question_id)
+      question.delete()
+
+
+    return JsonResponse({"success": True})
+  else:
+    template = loader.get_template('polls/createQuestion.html')
+    myType = Type.objects.all()
+    form = CreateQuestion()
+    myForm = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
+
+    info_form = []
+
+    myPages = Page.objects.filter(Form=myForm)
+    print(myPages)
+    form_data = {
+      'form': myForm,
+      'pages': []
     }
 
-    for question in myQuestions:
-      myAnswers = Answer.objects.filter(Question=question)
-      question_data = {
+    for page in myPages:
+      myQuestions = Question.objects.filter(page=page)
+      page_data = {
+        'page': page,
+        'questions': []
+      }
+
+      for question in myQuestions:
+        myAnswers = Answer.objects.filter(Question=question)
+        question_data = {
           'question': question,
           'answers': myAnswers
-      }
-                
-      page_data['questions'].append(question_data)
-    form_data['pages'].append(page_data)
+        }
 
-  info_form.append(form_data)
+        page_data['questions'].append(question_data)
+      form_data['pages'].append(page_data)
 
-  context = {
-    'myType': myType,
-    'form' : form,
-    'info_form' : info_form,
-  }
-  return HttpResponse(template.render(context, request))
+    info_form.append(form_data)
+
+    context = {
+      'myType': myType,
+      'form': form,
+      'info_form': info_form,
+    }
+    return HttpResponse(template.render(context, request))
+
+
+
 
 #def nbr(request):
 #  form = nbrAnswer()
@@ -155,6 +246,4 @@ def register(request):
 def logout(request):
   logout(request)
   pass
-
-
 
