@@ -140,6 +140,19 @@ def QuestionView(request):
       question = Question.objects.get(idQuestion=question_id)
       question.delete()
 
+    if (action== "duplicateQuestion"):
+      question_id = request.POST.get('question_id')
+      CpQuestion = Question.objects.get(idQuestion=question_id)
+      NewQuestion = Question.objects.create(
+        title        = "Copie Question",
+        type      = CpQuestion.type,
+        page      = CpQuestion.page,
+        isObligatory = CpQuestion.isObligatory,
+        nbrAnswerMin = CpQuestion.nbrAnswerMin,
+        nbrAnswerMax = CpQuestion.nbrAnswerMax,
+      )
+      NewQuestion.save()
+
 
     return JsonResponse({"success": True})
   else:

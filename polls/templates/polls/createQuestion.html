@@ -77,13 +77,13 @@
             });
 
             function duplicateQuestion(btn) {
-                var key_page = $(btn).closest('.page').attr('id');
+                var question_id = $(btn).attr('id');
                 $.ajax({
                     type: 'POST',
                     url: '{% url "QuestionView" %}', // l'URL vue Django
                     data: {
                         'action': "duplicateQuestion",
-                        'key_page':key_page
+                        'question_id':question_id
                     },
                     success: function(response) {
                         if (response.success) {
@@ -191,7 +191,7 @@
                                         {% endfor %}
                                     </select>
 
-                                    <p class="key">nbr réponse Min :{{ question.question.nbrAnswerMin }}</p>
+                                    <p class="key">nbr réponse Min :{{ question.question.nbrAnswerMin }}</p>  <!-- isObligatory   class  ## ##-->
                                     <p class="key">nbr réponse Max :{{ question.question.nbrAnswerMax }}</p>  <!-- lst déroulante en fonction du nbr de propositions de questions-->
 
                                     {% for answer in question.answers %}
@@ -200,7 +200,7 @@
                                     </div >
                                     {% endfor %}
                                     <button type="button" id="{{ question.question.idQuestion }}" onclick="removeQuestion(this);">Supprimer</button>
-                                    <button type="button" id="{{ question.question.idQuestion }}" onclick="duplcate(this);">dupliquer</button>
+                                    <button type="button" id="{{ question.question.idQuestion }}" onclick="duplicateQuestion(this);">dupliquer</button>
 
                                 </div>
                             </form>
