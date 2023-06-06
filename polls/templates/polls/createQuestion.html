@@ -30,12 +30,26 @@
         <script>
             $(document).ready(function() {
                 console.log("prêt");
+            
+                const reponses = document.querySelectorAll('.reponse');
+                reponses.forEach(reponse => {
+                    const input = reponse.querySelector('.key');
+                    const deleteIcon = reponse.querySelector('.delete-icon');
+            
+                    // Lorsque la croix est cliquée, supprimer la proposition de réponse
+                    deleteIcon.addEventListener('click', () => {
+                        removeAnswer(reponse);
+                    });
+                });
+
                 $('.key').change(function() {
                     var key_question = $(this).closest('.question').attr('id');
                     var key_page = $(this).closest('.page').attr('id'); 
                     var key_value;
                     var key_id = $(this).attr('id');
-                    var key_type = "question"
+                    var answer_id = $(this).closest('.reponse').attr('id');
+                    //var key_type = $(this).closest('.reponse');
+                    var key_type = $(this).parent().attr('class');
                     //var key_type = $(this).closest('.question').attr('id');
                     var key_name = $(this).attr('name');
                     console.log("changement")
@@ -44,13 +58,13 @@
                         key_value = $(this).is(':checked');
                         console.log(key_value)
                     } else if ($(this).is('select')) {
-                        key_value = $(this).val(key_type);
+                        key_value=this.options[this.selectedIndex].text; 
                     } else {
                         key_value = $(this).val();
                     }
                     
 
-                    console.log("Nouvelle valeur de l'élément avec l'ID '" + key_id + "': " + key_value);
+                    console.log("Pour " + key_type + " Nouvelle valeur de l'élément avec l'ID '" + key_id +"': " + key_value);
 
                     $.ajax({
                         type: 'POST',
@@ -62,12 +76,16 @@
                             'key_type': key_type,
                             'key_page':key_page,
                             'key_question':key_question,
-                            'key_name':key_name
+                            'key_name':key_name,
+                            'answer_id':answer_id
                             
                         },
                         success: function(response) {
                             if (response.success) {
                                 console.log("succes");
+                                if (key_value = "question ouverte"){
+                                    location.reload()//dynamique
+                                }
                             } else {
                                 console.log("echec");
                             }
@@ -97,6 +115,56 @@
                 });
             }
 
+
+            function removeAnswer(answer) {
+                console.log(answer);
+                idAnswer = answer.getAttribute('id');
+                console.log(idAnswer);
+            
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    data: {
+                        'action': 'removeAnswer',
+                        'Answer': idAnswer
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            answer.remove();
+                            //location.reload();
+                            // Créer la page dynamiquement ou rafraîchir la page
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
+
+            function addAnswer(btn) {
+                console.log("Nouvelle proposition de réponse");
+                const questionId = $(btn).closest('.question').attr('id');
+            
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" %}', // URL de la vue Django
+                    data: {
+                        'action': 'addAnswer',
+                        'question_id': questionId
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("Succès");
+                            //addNewAnswer(); // Appeler la fonction pour ajouter une réponse après avoir reçu la réponse AJAX
+                            // Recharger la page ou affichage dynamique
+                            location.reload();
+                        } else {
+                            console.log("Échec");
+                        }
+                    }
+                });
+            }
+            
             function addQuestion(btn) {
                 var key_page = $(btn).closest('.page').attr('id');
                 $.ajax({
@@ -184,21 +252,27 @@
                                     <br>
                                     <input id="{{ question.question.idQuestion }}" class="key" name="{{ question.question.idQuestion.name }}" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>isObligatory</input> <!-- isObligatory   class   name id -->
                                     <br>
-                                    <label for="type-select">Choose a type:</label>
+                                    <label for="type-select" >Choose a type:</label>
                                     <select name="type" id="type-select" class="key">
                                         {% for x in myType%}
-                                        <option value="{{ x.typeQuestion}}"> {{ x.typeQuestion}}</option>
+                                        <option value="{{ x.typeQuestion}}" {% if x.typeQuestion == question.question.type.typeQuestion %}selected{% endif %}> {{ x.typeQuestion}}</option>
                                         {% endfor %}
                                     </select>
-
+                                    {% if question.question.type.typeQuestion != 'question ouverte' %}
                                     <p class="key">nbr réponse Min :{{ question.question.nbrAnswerMin }}</p>  <!-- isObligatory   class  ## ##-->
                                     <p class="key">nbr réponse Max :{{ question.question.nbrAnswerMax }}</p>  <!-- lst déroulante en fonction du nbr de propositions de questions-->
-
+                                    {% endif %}
                                     {% for answer in question.answers %}
                                     <div id="{{ answer.idAnswer }}" class="reponse">
-                                        <input type="text" class="key" value="{{ answer.Answer }}">
-                                    </div >
+                                        <input name="{{ answer.name }}" type="text" class="key" value="{{ answer.Answer }}">
+                                        <span class="delete-icon">&times;</span>
+                                    </div>
                                     {% endfor %}
+                                    {% if question.question.type.typeQuestion != 'question ouverte' %}
+                                    <button type="button" onclick="addAnswer(this);">plus</button>  <!-- afficher cette ligne si ce n'est pas une question ouverte -->
+                                    {%else%}
+                                    <textarea disabled>réponse....</textarea>
+                                    {% endif %}
                                     <button type="button" id="{{ question.question.idQuestion }}" onclick="removeQuestion(this);">Supprimer</button>
                                     <button type="button" id="{{ question.question.idQuestion }}" onclick="duplicateQuestion(this);">dupliquer</button>
 

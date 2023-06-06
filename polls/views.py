@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth import login, authenticate
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import uuid
 
 # Create your views here.
 from django.http import Http404, HttpResponse
@@ -105,7 +106,28 @@ def QuestionView(request):
         if (key_name == "title"):
           my_model_instance.title = key_value
         elif key_name == "type":
-          my_model_instance.type = Type.objects.get(typeQuestion=key_value)
+          myNewType = Type.objects.get(typeQuestion=key_value)
+          myAnswers = Answer.objects.filter(Question=my_model_instance)
+          my_model_instance.type = myNewType      #mise a jour du type
+          if (key_value== "choix multiple"):      #mise a jour des parametre
+            my_model_instance.nbrAnswerMin = 1
+            my_model_instance.nbrAnswerMax = myAnswers.count()
+          elif key_value== "Question à échelle":
+            my_model_instance.nbrAnswerMin = 1
+            my_model_instance.nbrAnswerMax = 1
+          elif key_value== "Choix unique":
+            my_model_instance.nbrAnswerMin = 1
+            my_model_instance.nbrAnswerMax = 1
+          elif key_value== "question ouverte":
+            for answer in myAnswers :
+              answer.delete()
+          
+          #mise a jour des questions
+          myAnswers = Answer.objects.filter(Question=my_model_instance)
+          for answer in myAnswers :
+            answer.type = myNewType
+            
+          
         elif key_name == "page":
           pass
         elif key_name == "isObligatory":
@@ -115,11 +137,12 @@ def QuestionView(request):
         elif key_name == "nbrAnswerMax":
           pass
       elif key_type == "answer":
-        my_model_instance = Answer.objects.get(idAnswer=key_id)
-          #type
-          #Answer
+        answer_id = request.POST.get("answer_id")
+        my_model_instance = Answer.objects.get(idAnswer=answer_id)
+        my_model_instance.Answer = key_value
       
       if (my_model_instance != None):
+        print("save")
         my_model_instance.save()
 
     if (action == "addQuestion"):
@@ -153,6 +176,20 @@ def QuestionView(request):
       )
       NewQuestion.save()
 
+    if(action== "addAnswer"):
+      question_id = request.POST.get('question_id')
+      QuestionCourant = Question.objects.get(idQuestion=question_id)
+      NewAnswer = Answer.objects.create(
+        type     = QuestionCourant.type,
+        Question = QuestionCourant,
+        Answer   = "nouvelle réponse ",
+      )
+      NewAnswer.save()
+
+    if(action=="removeAnswer"):
+      idAnswer = request.POST.get("Answer")
+      RmAnswer = Answer.objects.get(idAnswer=idAnswer)
+      RmAnswer.delete()
 
     return JsonResponse({"success": True})
   else:
@@ -259,4 +296,16 @@ def register(request):
 def logout(request):
   logout(request)
   pass
+
+
+def answerFormView(request, formulaire_id,idUSer):
+  formulaire = Form.objects.get(id=formulaire_id)
+  pages = formulaire.page_set.all()
+
+  context = {
+   'formulaire': formulaire,
+    'pages': pages
+  }
+
+  return render(request, 'answerForm.html', context)
 
