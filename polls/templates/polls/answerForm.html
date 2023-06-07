@@ -1,28 +1,34 @@
-<!-- formulaire.html -->
-
+<!-- answerForm.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ formulaire.titre }}</title>
+  <title>Answer Form</title>
 </head>
 <body>
-    <h1>{{ formulaire.titre }}</h1>
-    <p>{{ formulaire.texte_introduction }}</p>
+  <h1>{{ myForm.titleForm }}</h1>
 
-    {% for page in pages %}
-        <h2>{{ page.titre }}</h2>
+  {% for page in myPages %}
+    <h2>Page {{ page.number }}</h2>
 
-        {% for question in page.question_set.all %}
-            <h3>{{ question.texte }}</h3>
+    <form method="post" action="">
+      {% csrf_token %}
 
-            <ul>
-                {% for reponse in question.reponse_set.all %}
-                    <li>{{ reponse.texte }}</li>
-                {% endfor %}
-            </ul>
-        {% endfor %}
-    {% endfor %}
+      {% for question in page.question_set.all %}
+        <h3>{{ question.title }}</h3>
 
-    <p>{{ formulaire.texte_conclusion }}</p>
+        {% if question.type.typeQuestion == 'question ouverte' %}
+          <textarea name="answer_{{ question.idQuestion }}"></textarea>
+        {% else %}
+          {% for answer in question.answer_set.all %}
+            <input type="radio" name="answer_{{ question.idQuestion }}" value="{{ answer.idAnswer }}">
+            <label>{{ answer.Answer }}</label><br>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+
+      <input type="submit" value="Submit">
+    </form>
+  {% endfor %}
+  <input type="submit" value="Envoyer le Formulaire">
 </body>
 </html>

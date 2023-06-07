@@ -298,18 +298,17 @@ def logout(request):
   pass
 
 #def answerFormView(request, formulaire_id,idUSer):
-def answerFormView(request,):
-  myForm = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda"),
-  myUser = User.objects.get(idUSer="207765bf-c5ca-41b2-8fef-ab5ec573e403"),
-  myPages = Page.objects.filter(Form="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
-  #formulaire = Form.objects.get(id=formulaire_id)
-  #pages = myForm.page_set.all()
+def answerFormView(request):
+    myForm = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
+    myUser = User.objects.get(idUSer="207765bf-c5ca-41b2-8fef-ab5ec573e403")
+    myPages = Page.objects.filter(Form="b6c03317-3efb-4eb8-9b72-b6aaa8788dda").order_by('number')
 
-  context = {
-   'formulaire': myForm,
-    'pages': myPages,
-    'myUser': myUser
-  }
+    context = {
+        'myForm': myForm,
+        'myPages': myPages,
+        'myUser': myUser
+    }
 
-  return render(request, 'polls/answerForm.html', context)
+    return render(request, 'polls/answerForm.html', context)
+
 
