@@ -1,11 +1,28 @@
-{% extends "master.html" %}
+<!-- formulaire.html -->
 
-{% block title %}
-  Create Form
-{% endblock %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ formulaire.titre }}</title>
+</head>
+<body>
+    <h1>{{ formulaire.titre }}</h1>
+    <p>{{ formulaire.texte_introduction }}</p>
 
+    {% for page in pages %}
+        <h2>{{ page.titre }}</h2>
 
-{% block content %}
-  <h1>answer the form</h1>
-  
-{% endblock %}
+        {% for question in page.question_set.all %}
+            <h3>{{ question.texte }}</h3>
+
+            <ul>
+                {% for reponse in question.reponse_set.all %}
+                    <li>{{ reponse.texte }}</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% endfor %}
+
+    <p>{{ formulaire.texte_conclusion }}</p>
+</body>
+</html>

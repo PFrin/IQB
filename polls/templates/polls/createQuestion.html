@@ -35,10 +35,14 @@
                 reponses.forEach(reponse => {
                     const input = reponse.querySelector('.key');
                     const deleteIcon = reponse.querySelector('.delete-icon');
+                    const joinIcon   = reponse.querySelector('.join-icon');
             
                     // Lorsque la croix est cliquée, supprimer la proposition de réponse
                     deleteIcon.addEventListener('click', () => {
                         removeAnswer(reponse);
+                    });
+                    joinIcon.addEventListener('click', () => {
+                        JoinAnswer(reponse);
                     });
                 });
 
@@ -64,7 +68,8 @@
                     }
                     
 
-                    console.log("Pour " + key_type + " Nouvelle valeur de l'élément avec l'ID '" + key_id +"': " + key_value);
+                    console.log("Pour " + key_type + " Nouvelle valeur de l'élément avec l'ID '" + key_id + "': " + key_value);
+                    console.log(key_name)
 
                     $.ajax({
                         type: 'POST',
@@ -114,7 +119,26 @@
                     }
                 });
             }
-
+            function JoinAnswer(answer) {
+                console.log(answer);
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    data: {
+                        'action': 'JoinAnswer',
+                        'Answer': idAnswer
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            location.reload();
+                            // Créer la page dynamiquement ou rafraîchir la page
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
 
             function removeAnswer(answer) {
                 console.log(answer);
@@ -248,7 +272,7 @@
                             <form method="post">
                                 {% csrf_token %}
                                 <div id="{{ question.question.idQuestion }}" class="question">
-                                    <input name="{{ form.form.titleForm.title }}" type="text" class="key" value="{{ question.question.title }}">    <!-- title   class   name -->
+                                    <input name="title" type="text" class="key" value="{{ question.question.title }}">    <!-- title   class   name -->
                                     <br>
                                     <input id="{{ question.question.idQuestion }}" class="key" name="{{ question.question.idQuestion.name }}" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>isObligatory</input> <!-- isObligatory   class   name id -->
                                     <br>
@@ -266,6 +290,7 @@
                                     <div id="{{ answer.idAnswer }}" class="reponse">
                                         <input name="{{ answer.name }}" type="text" class="key" value="{{ answer.Answer }}">
                                         <span class="delete-icon">&times;</span>
+                                        <span class="join-icon">--></span>
                                     </div>
                                     {% endfor %}
                                     {% if question.question.type.typeQuestion != 'question ouverte' %}

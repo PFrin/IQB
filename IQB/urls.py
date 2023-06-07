@@ -39,6 +39,7 @@ urlpatterns = [
     
     #test et debug
     path('createQuestion/', views.QuestionView, name='QuestionView'),
+    path('form/', views.answerFormView, name='answerFormView'),
     
     
 
