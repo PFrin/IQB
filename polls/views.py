@@ -299,16 +299,31 @@ def logout(request):
 
 #def answerFormView(request, formulaire_id,idUSer):
 def answerFormView(request):
-    myForm = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
-    myUser = User.objects.get(idUSer="207765bf-c5ca-41b2-8fef-ab5ec573e403")
-    myPages = Page.objects.filter(Form="b6c03317-3efb-4eb8-9b72-b6aaa8788dda").order_by('number')
+  myForm  = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
+  myUser  = User.objects.get(idUSer="207765bf-c5ca-41b2-8fef-ab5ec573e403")
+  myPages = Page.objects.filter(Form="b6c03317-3efb-4eb8-9b72-b6aaa8788dda").order_by('number')
 
-    context = {
-        'myForm': myForm,
-        'myPages': myPages,
-        'myUser': myUser
-    }
+  if request.method == 'POST':
+    session_data = {}
+    for key, value in request.POST.items():
+      if key.startswith("answer_"):
+        session_data[key] = value
+        request.session[key] = value
 
-    return render(request, 'polls/answerForm.html', context)
+    print("Sessions:")
+    print(session_data)
+    for key, value in session_data.items():
+      print(key + ": " + value)
+
+  else:
+    session_data = {}
+
+  context = {
+    'myForm' : myForm,
+    'myPages': myPages,
+    'myUser' : myUser,
+    'session_data': session_data
+  }
 
 
+  return render(request, 'polls/answerForm.html', context)
