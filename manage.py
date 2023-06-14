@@ -4,8 +4,7 @@ import os
 import sys
 import django
 from django.conf import settings
-from IQB.models import Type
-
+#from polls.models import Type
 
 def main():
     """Run administrative tasks."""
@@ -37,6 +36,6 @@ def initialize_table():
 if __name__ == '__main__':
     main()
 
-    initialize_table()
+    #initialize_table()
 
-    execute_from_command_line(sys.argv)
+    #execute_from_command_line(sys.argv)
