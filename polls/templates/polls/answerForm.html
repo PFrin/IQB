@@ -17,11 +17,11 @@
         <h3>{{ question.title }}</h3>
     
         {% if question.type.typeQuestion == 'question ouverte' %}
-          <textarea name="answer_{{ question.idQuestion }}"></textarea>
+          <textarea name="{{ question.idQuestion }}"></textarea>
         {% else %}
           {% for answer in question.answer_set.all %}
             {% if question.type.typeQuestion == 'choix multiple' %}
-              <input type="checkbox" name="answer_{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
+              <input type="checkbox" name="{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
                 {% for key, value in session_data.items %}
                   {% if answer.idQuestion in key and value == answer.idAnswer%}
                     checked
@@ -29,7 +29,7 @@
                 {% endfor %}     
               >
             {% else %}
-              <input type="radio" name="answer_{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
+              <input type="radio" name="{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
                 {% for key, value in session_data.items %}
                   {% if answer.idQuestion in key and value == answer.idAnswer%}
                     checked

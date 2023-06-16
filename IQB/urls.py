@@ -28,27 +28,46 @@ urlpatterns = [
 
 from django.contrib import admin
 from django.urls import include, path
-from polls import views 
+from polls import views
+import uuid
 
 urlpatterns = [
     #path("polls/", include("polls.urls"t)),
-    path("", views.home, name="home"),
-    path('login', views.login, name='login'),
-    path('register',views.register, name='register'),
+    path("", views.loginView, name="home"),
+    path('login/', views.loginView, name='login'),
+    path('register/',views.register, name='register'),
     path("admin/", admin.site.urls),
     
     #test et debug
-    path('createQuestion/', views.QuestionView, name='QuestionView'),
-    path('form/', views.answerFormView, name='answerFormView'),
     
+    path('form/', views.answerFormView, name='answerFormView'),
+    #path('<str:loginCust>/createQuestion/<str:idForm>/', views.QuestionView, name='QuestionView'),
     
 
+    #path("Customer/<str:login>", views.CreateForm, login='login'),
+    
     #test et debug
-    path('details/<str:loginCust>/', views.details, name='details'),        #http://127.0.0.1:8000/details/cust1/
+    #path('details/<str:loginCust>/', views.details, name='details'),        #http://127.0.0.1:8000/details/cust1/
     #Vu Client 
-    path('<str:loginCust>/', views.details, name='details'), #http://127.0.0.1:8000/cust1/
-    path('<str:loginCust>/', include([
+    path('<str:loginCust>/', views.details, name='details'),
+    path('<str:loginCust>/form/', include([
+        path('redirection', views.redirection, name='redirection'),
         path('CreateForm/', views.CreateForm, name='createForm'),
+        path('createQuestion/<str:idForm>/', views.QuestionView, name='QuestionView'),
         #path('answerForm/', views.AnswerForm, name='AnswerForm'),
     ])),
+
 ]
+
+"""
+url :
+""                                      --> si pas connecté direction login sinon vers login/details
+login
+register
+<str:loginCust>
+<str:loginCust>/createQuestion
+<str:loginCust>/createQuestion/test     --> voir le formulaire en mode vue user pour test
+form/idUSer                             --> user qui répond au form
+
+admin
+"""

@@ -27,21 +27,17 @@ class Form(models.Model):
     introText        = models.TextField(max_length=100, default="Binevenue sur notre formulaire.")
     concludingText   = models.TextField(max_length=100, default="Merci d\'avoir rempli notre formulaire.")
     CreationDate     = models.DateTimeField(auto_now_add=True)  # date de la création de l'objet
-    MEPDate          = models.DateTimeField()
+    MEPDate          = models.DateTimeField(blank=True, null=True)
     lastModifiedDate = models.DateTimeField(auto_now=True)      # date de la derniere modification de l'objet
     isOnline         = models.BooleanField (default="False")
     Customer         = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.titleForm
 
 class Page(models.Model):
     idPage = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     number = models.IntegerField()
     Form   = models.ForeignKey(Form, on_delete=models.CASCADE)
 
-    def __int__(self):
-        return self.number
 
 class Question(models.Model):
     idQuestion = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)

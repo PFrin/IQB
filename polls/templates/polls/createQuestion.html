@@ -32,6 +32,10 @@
                 console.log("prêt");
             
                 const reponses = document.querySelectorAll('.reponse');
+                const tabIdForm = document.getElementsByTagName('h2');
+                const idForm = elements[0];
+
+
                 reponses.forEach(reponse => {
                     const input = reponse.querySelector('.key');
                     const deleteIcon = reponse.querySelector('.delete-icon');
@@ -70,10 +74,11 @@
 
                     console.log("Pour " + key_type + " Nouvelle valeur de l'élément avec l'ID '" + key_id + "': " + key_value);
                     console.log(key_name)
+                    var latestFormId ="a0355265-9dc1-4edf-923f-d9c52c63adfa";
 
                     $.ajax({
                         type: 'POST',
-                        url: '{% url "QuestionView" %}', // l'URL vue Django
+                        url: '{% url "QuestionView" loginCust="cust1" idForm="a0355265-9dc1-4edf-923f-d9c52c63adfa" %}',
                         data: {
                             'action': "update",
                             'key_value': key_value, 
@@ -103,7 +108,7 @@
                 var question_id = $(btn).attr('id');
                 $.ajax({
                     type: 'POST',
-                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    url: '{% url "QuestionView" loginCust="cust1" idForm="a0355265-9dc1-4edf-923f-d9c52c63adfa" %}', // l'URL vue Django
                     data: {
                         'action': "duplicateQuestion",
                         'question_id':question_id
@@ -123,7 +128,7 @@
                 console.log(answer);
                 $.ajax({
                     type: 'POST',
-                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    url: '{% url "QuestionView" loginCust="cust1" idForm="a0355265-9dc1-4edf-923f-d9c52c63adfa" %}', // l'URL vue Django
                     data: {
                         'action': 'JoinAnswer',
                         'Answer': idAnswer
@@ -147,7 +152,7 @@
             
                 $.ajax({
                     type: 'POST',
-                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    url: '{% url "QuestionView" loginCust="cust1" idForm="a0355265-9dc1-4edf-923f-d9c52c63adfa" %}', // l'URL vue Django
                     data: {
                         'action': 'removeAnswer',
                         'Answer': idAnswer
@@ -171,7 +176,7 @@
             
                 $.ajax({
                     type: 'POST',
-                    url: '{% url "QuestionView" %}', // URL de la vue Django
+                    url: '{% url "QuestionView" loginCust="cust1" idForm="a0355265-9dc1-4edf-923f-d9c52c63adfa" %}', // URL de la vue Django
                     data: {
                         'action': 'addAnswer',
                         'question_id': questionId
@@ -193,7 +198,7 @@
                 var key_page = $(btn).closest('.page').attr('id');
                 $.ajax({
                     type: 'POST',
-                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    url: '{% url "QuestionView" loginCust="cust1" idForm="a0355265-9dc1-4edf-923f-d9c52c63adfa" %}', // l'URL vue Django
                     data: {
                         'action': "addQuestion",
                         'key_page':key_page
@@ -214,7 +219,7 @@
                 var key_question = $(btn).closest('.question').attr('id');
                 $.ajax({
                     type: 'POST',
-                    url: '{% url "QuestionView" %}', // l'URL vue Django
+                    url: '{% url "QuestionView" loginCust="cust1" idForm="a0355265-9dc1-4edf-923f-d9c52c63adfa" %}', // l'URL vue Django
                     data: {
                         'action': "removeQuestion",
                         'question_id':key_question
@@ -261,7 +266,7 @@
 
             <hr>
             {% for form in info_form %}
-                <h2 class="key" name ="{{ form.form.titleForm.name }}">titre :{{ form.form.titleForm }}</h2> <!-- titleForm   class   name -->
+                <h2 class="key" id="{{ form.form.idForm }}" name ="{{ form.form.titleForm.name }}">titre :{{ form.form.titleForm }}</h2> <!-- titleForm   class   name -->
 
                 {% for page in form.pages %}
                     <div id='allPages'>

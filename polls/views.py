@@ -15,6 +15,12 @@ from django.shortcuts import render
 from .models import *
 from django.contrib.auth.decorators import login_required
 from polls.allForms import CustomerCreationForm, LoginForm, CreateForm, CreateQuestion
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse, JsonResponse, Http404
+from django.template import loader
+from .models import Customer, Form
+from django.http import JsonResponse
+from django.core import serializers
 
 def CreateForm(request,loginCust):
   myCustomer = Customer.objects.get(loginCust=loginCust)
@@ -36,38 +42,49 @@ def CreateForm(request,loginCust):
 #http://127.0.0.1:8000/details/cust1/
 @login_required
 def details(request, loginCust):
-  try:
-    myCustomer = Customer.objects.get(loginCust=loginCust)
-    myOnlineForm = Form.objects.all().filter(
-      Customer = myCustomer,
-      isOnline = 'True'
-    )
-    myFormUnderConstruction = Form.objects.all().filter(
-      Customer = myCustomer,
-      isOnline = 'False',
-    )
-    template = loader.get_template('polls/details.html')
-    context = {
-      'myCustomer': myCustomer,
-      'myOnlineForm':myOnlineForm,
-      'myFormUnderConstruction':myFormUnderConstruction
-    }
-  except Customer.DoesNotExist:
-    raise Http404("Question does not exist")
-  return HttpResponse(template.render(context, request))
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "newForm":
+            myCustomer = get_object_or_404(Customer, loginCust=loginCust)
+            
+            form = Form(titleForm='new Form', Customer_id=myCustomer.idCustomer)
+            form.save(form.idForm)
+            print("_____________________")
+            print(form.idForm)
+            serialized_form = serializers.serialize('json', [form], fields=('titleForm', 'Customer_id'))
+            response_data = {
+                'success': True,
+                'latestFormId': serialized_form
+            }
+            return JsonResponse(response_data)
+
+    try:
+        myCustomer = get_object_or_404(Customer, loginCust=loginCust)
+        myOnlineForm = Form.objects.filter(Customer=myCustomer, isOnline=True)
+        myFormUnderConstruction = Form.objects.filter(Customer=myCustomer, isOnline=False)
+
+        context = {
+            'myCustomer': myCustomer,
+            'myOnlineForm': myOnlineForm,
+            'myFormUnderConstruction': myFormUnderConstruction
+        }
+        return render(request, 'polls/details.html', context)
+    except Customer.DoesNotExist:
+        raise Http404("Customer does not exist")
 
 
 
 @csrf_exempt
-def QuestionView(request):
+def QuestionView(request,loginCust,idForm):
+
   #valeurs par défault
   defaultType = Type.objects.get(typeQuestion='Choix unique')
-  if request.method == "POST":  # Modifier cette ligne
+  if request.method == "POST":
     action = request.POST.get("action")
     if (action == "update"):
       key_question = request.POST.get("key_question")
       key_value = request.POST.get("key_value")
-      key_id = request.POST.get("key_id")
+      key_id   = request.POST.get("key_id")
       key_type = request.POST.get("key_type")
       key_page = request.POST.get("key_page")
       key_name = request.POST.get("key_name")
@@ -81,7 +98,6 @@ def QuestionView(request):
         key_value = False
       if key_value == "true":
         key_value = True
-
 
       if key_type == "form":
         my_model_instance = Form.objects.get(idForm=key_id)
@@ -196,41 +212,49 @@ def QuestionView(request):
     template = loader.get_template('polls/createQuestion.html')
     myType = Type.objects.all()
     form = CreateQuestion()
-    myForm = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
+    myForm = Form.objects.get(idForm=idForm)
+    print("_______________________")
+    print(myForm)
+    
 
     info_form = []
-
-    myPages = Page.objects.filter(Form=myForm)
+    print("1")
+    myPages = Page.objects.filter(Form=idForm)
+    print("x")
     print(myPages)
     form_data = {
       'form': myForm,
       'pages': []
     }
-
+    print("2")
     for page in myPages:
+      print("x")
       myQuestions = Question.objects.filter(page=page)
+      print(myQuestions)
       page_data = {
         'page': page,
         'questions': []
       }
-
+      print("3")
       for question in myQuestions:
         myAnswers = Answer.objects.filter(Question=question)
         question_data = {
           'question': question,
           'answers': myAnswers
         }
-
+        print("4")
         page_data['questions'].append(question_data)
+      
       form_data['pages'].append(page_data)
 
     info_form.append(form_data)
-
+    print("5")
     context = {
       'myType': myType,
       'form': form,
       'info_form': info_form,
     }
+    print("toto")
     return HttpResponse(template.render(context, request))
 
 
@@ -241,6 +265,18 @@ def QuestionView(request):
 #  nbrAnswerMin = form.cleaned_data['nbrAnswerMin'],
 #  nbrAnswerMax = form.cleaned_data['nbrAnswerMax'],
 
+def redirection(request,loginCust):
+  # Trouver le dernier formulaire créé par l'utilisateur
+  try:
+    myCustomer = Customer.objects.get(loginCust=loginCust)
+    latest_form = Form.objects.filter(Customer=myCustomer).latest('CreationDate')
+        
+  except Form.DoesNotExist:
+    # Rediriger vers une autre vue si aucun formulaire n'est trouvé
+    return redirect('details', loginCust=myCustomer.loginCust)
+
+  redirect_url = '/loginCust/form/createQuestion/'+ str(latest_form.idForm)
+  return redirect(redirect_url)
 
 
 def formCreate(request):
@@ -257,8 +293,12 @@ def formCreate(request):
 ##############################
 
 def home(request):
-  return render(request, 'polls/index.html')
+  if request.user.is_authenticated:
+    return render(request, 'polls/details.html')
+  else:
+    return render(request, 'polls/login.html')
 
+@csrf_exempt
 def loginView(request):
   try:
     form = LoginForm()
@@ -287,11 +327,21 @@ def loginView(request):
   return HttpResponse(template.render(context, request))
 
 def register(request):
+  if request.method == "POST":
+
+    response_data = {
+  }
+    return JsonResponse(response_data)
   form = CustomerCreationForm()
   if form.is_valid():
     form.save()
-    return 
-  return redirect(request, 'polls/register.html')
+    return redirect(request, 'login.html')
+
+
+  template = loader.get_template('polls/register.html')
+  context = {
+  }
+  return HttpResponse(template.render(context, request))
 
 def logout(request):
   logout(request)
