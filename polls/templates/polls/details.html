@@ -45,7 +45,6 @@
     <script>
         function newForm(myCustomer) {
             console.log(myCustomer.loginCust);
-            var formId= "a0355265-9dc1-4edf-923f-d9c52c63adfa";
             $.ajax({
                 type: 'POST',
                 url: '{% url "details" loginCust=myCustomer.loginCust %}',
@@ -65,7 +64,14 @@
                 }
             });
         }
+
+        function editForm(myCustomer,formId) {
+            console.log(formId);
+            var redirectUrl = '/' + myCustomer + '/form/createQuestion/' + formId.toString() + '/';
+            document.location.href = redirectUrl;
+        }
     </script>
+        
 
     </head>
 
@@ -90,6 +96,12 @@
         <p><strong>lastModifiedDate:</strong> {{ x.lastModifiedDate }}</p>
         <p><strong>isOnline:        </strong> {{ x.isOnline         }}</p>
         <p><strong>Customer:        </strong> {{ x.Customer         }}</p>
+        <button onclick="editForm('{{ x.idForm }}');">
+            <p>Modifier le formulaire</p>
+        </button>
+        <button onclick="viewTest('{{ x.idForm }}');">
+            <p>voir le rendu</p>
+        </button>
     </div>
     {% endfor %}
     <hr>
@@ -104,6 +116,12 @@
         <p><strong>lastModifiedDate:</strong> {{ x.lastModifiedDate }}</p>
         <p><strong>isOnline:        </strong> {{ x.isOnline         }}</p>
         <p><strong>Customer:        </strong> {{ x.Customer         }}</p>
+        <button onclick="editForm('{{myCustomer}}','{{ x.idForm }}');">
+            <p>Modifier le formulaire</p>
+        </button>
+        <button onclick="viewTest('{{ x.idForm }}');">
+            <p>voir le rendu</p>
+        </button>
     </div>
     {% endfor %}
     <hr>

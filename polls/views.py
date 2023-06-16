@@ -73,7 +73,6 @@ def details(request, loginCust):
         raise Http404("Customer does not exist")
 
 
-
 @csrf_exempt
 def QuestionView(request,loginCust,idForm):
 
@@ -118,9 +117,7 @@ def QuestionView(request,loginCust,idForm):
         #number
       elif key_type == "question":
         my_model_instance = Question.objects.get(idQuestion=key_question)
-        print(key_name)
         if (key_name == "title"):
-          print(key_value)
           my_model_instance.title = key_value
         elif key_name == "type":
           myNewType = Type.objects.get(typeQuestion=key_value)
@@ -213,48 +210,40 @@ def QuestionView(request,loginCust,idForm):
     myType = Type.objects.all()
     form = CreateQuestion()
     myForm = Form.objects.get(idForm=idForm)
-    print("_______________________")
-    print(myForm)
-    
 
     info_form = []
-    print("1")
     myPages = Page.objects.filter(Form=idForm)
-    print("x")
     print(myPages)
     form_data = {
       'form': myForm,
       'pages': []
     }
-    print("2")
     for page in myPages:
-      print("x")
       myQuestions = Question.objects.filter(page=page)
-      print(myQuestions)
       page_data = {
         'page': page,
         'questions': []
       }
-      print("3")
       for question in myQuestions:
         myAnswers = Answer.objects.filter(Question=question)
         question_data = {
           'question': question,
           'answers': myAnswers
         }
-        print("4")
         page_data['questions'].append(question_data)
       
       form_data['pages'].append(page_data)
 
     info_form.append(form_data)
-    print("5")
+    customer = myForm.Customer
+    CurrentloginCust = customer.loginCust
     context = {
       'myType': myType,
       'form': form,
       'info_form': info_form,
+      'CurrentloginCust': CurrentloginCust,
+      'myForm':myForm,
     }
-    print("toto")
     return HttpResponse(template.render(context, request))
 
 
@@ -275,7 +264,7 @@ def redirection(request,loginCust):
     # Rediriger vers une autre vue si aucun formulaire n'est trouvé
     return redirect('details', loginCust=myCustomer.loginCust)
 
-  redirect_url = '/loginCust/form/createQuestion/'+ str(latest_form.idForm)
+  redirect_url = '/'+loginCust+'/form/createQuestion/'+ str(latest_form.idForm)
   return redirect(redirect_url)
 
 
