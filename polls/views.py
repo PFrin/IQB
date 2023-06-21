@@ -5,6 +5,8 @@ from django.contrib.auth import login, authenticate
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import uuid
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
 
 # Create your views here.
 from django.http import Http404, HttpResponse
@@ -21,6 +23,12 @@ from django.template import loader
 from .models import Customer, Form
 from django.http import JsonResponse
 from django.core import serializers
+
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 def CreateForm(request,loginCust):
   myCustomer = Customer.objects.get(loginCust=loginCust)
@@ -282,55 +290,53 @@ def formCreate(request):
 ##############################
 
 def home(request):
-  if request.user.is_authenticated:
-    return render(request, 'polls/details.html')
-  else:
-    return render(request, 'polls/login.html')
+    if request.user.is_authenticated and isinstance(request.user, Customer):
+        return render(request, 'polls/details.html')
+    else:
+        return render(request, 'polls/login.html')
 
-@csrf_exempt
-def loginView(request):
-  try:
-    form = LoginForm()
-    message = ''
+def login_view(request):
     if request.method == 'POST':
-      form = LoginForm(request.POST)
-      if form.is_valid():
-        username=form.cleaned_data['loginCust'],
-        password=form.cleaned_data['password'],
-        Customer = authenticate(request, username=username, password=password)
-        if Customer is not None:
-          login(request, Customer)
-          #print(Customer.get_username + "user ")
-          message = 'Identifiants valide.'
-          return redirect("./"+username)
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            print(username)
+            print(password)
+            user = authenticate(request, loginCust=username, password=password)
+            print(user)
+            if user is not None and isinstance(user, Customer):
+                print("is instance")
+                print(user.idCustomer)
+                login(request, user)
+                return redirect('answerFormView')
+            else:
+                print("Authentification invalide")
+                # Gérer le cas d'authentification invalide
+                return render(request, 'polls/login.html', {'error': 'Identifiants invalides.'})
         else:
-          message = 'Identifiants invalides.'
-    
-    template = loader.get_template('polls/login.html')
-    context = {
-      'form' : form,
-      'message': message
-    }
-  except Customer.DoesNotExist:
-    raise Http404("Customers does not exist")
-  return HttpResponse(template.render(context, request))
-
-def register(request):
-  if request.method == "POST":
-
-    response_data = {
-  }
-    return JsonResponse(response_data)
-  form = CustomerCreationForm()
-  if form.is_valid():
-    form.save()
-    return redirect(request, 'login.html')
+          print("form is not valid")
+          username = form.cleaned_data['username']
+          password = form.cleaned_data['password']
+          print(username)
+          print(password)
+    else:
+        form = LoginForm(request)
+    return render(request, 'polls/login.html', {'form': form})
 
 
-  template = loader.get_template('polls/register.html')
-  context = {
-  }
-  return HttpResponse(template.render(context, request))
+def register_view(request):
+    if request.method == 'POST':
+        form = CustomerCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+        else:
+            print("Échec de l'inscription")
+    else:
+        form = CustomerCreationForm()
+    return render(request, 'polls/register.html', {'form': form})
+
 
 def logout(request):
   logout(request)
@@ -338,9 +344,9 @@ def logout(request):
 
 #def answerFormView(request, formulaire_id,idUSer):
 def answerFormView(request):
-  myForm  = Form.objects.get(idForm="b6c03317-3efb-4eb8-9b72-b6aaa8788dda")
-  myUser  = User.objects.get(idUSer="207765bf-c5ca-41b2-8fef-ab5ec573e403")
-  myPages = Page.objects.filter(Form="b6c03317-3efb-4eb8-9b72-b6aaa8788dda").order_by('number')
+  myForm  = Form.objects.get(idForm="a0355265-9dc1-4edf-923f-d9c52c63adfa")
+  myUser  = User.objects.get(idUSer="5bcff6f7-abc5-4996-86b4-bfa199f8332b")
+  myPages = Page.objects.filter(Form=myForm).order_by('number')
 
   if request.method == 'POST':
     session_data = {}

@@ -95,19 +95,19 @@ WSGI_APPLICATION = 'IQB.wsgi.application'
 #}
 
 
-DATABASES = {  
-    'default': {  
-        'ENGINE': 'django.db.backends.mysql',  
-        'NAME': 'data_IQB',  
-        'USER': 'root',  
-        'PASSWORD': 'IODAIQB2023',  
-        'HOST': '127.0.0.1',  
-        'PORT': '3306',  
-        'OPTIONS': {  
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"  
-        }  
-    }  
-}  
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'data_IQB',
+        'USER': 'root',
+        'PASSWORD': 'IODAIQB2023',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    },
+} 
 
 
 # Password validation
@@ -146,7 +146,7 @@ DATE_INPUT_FORMATS = ('%d/%m/%Y','%Y-%m-%d')
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -155,7 +155,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DEFAULT_CHARSET = 'utf-8'
 
 #Redirection
-LOGIN_REDIRECT_URL  =  "details" 
-LOGOUT_REDIRECT_URL  =  "home"   # nouveau
+LOGIN_REDIRECT_URL = 'details'
+LOGOUT_REDIRECT_URL = 'home'
 
-#AUTH_USER_MODEL = 'authentication.Customer'
+AUTH_USER_MODEL = 'polls.Customer'
+

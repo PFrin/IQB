@@ -33,9 +33,9 @@ import uuid
 
 urlpatterns = [
     #path("polls/", include("polls.urls"t)),
-    path("", views.loginView, name="home"),
-    path('login/', views.loginView, name='login'),
-    path('register/',views.register, name='register'),
+    path("", views.login_view, name="home"),
+    path('login/', views.login_view, name='login'),
+    path('register/',views.register_view, name='register'),
     path("admin/", admin.site.urls),
     
     #test et debug

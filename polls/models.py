@@ -1,6 +1,8 @@
 import uuid
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 # Create your models here.
 class Type(models.Model):
@@ -10,16 +12,67 @@ class Type(models.Model):
     def __str__(self):
         return self.typeQuestion
 
-class Customer(AbstractBaseUser):
-    idCustomer     = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
-    mailCust       = models.TextField(max_length=100)
-    loginCust      = models.CharField(max_length=100)
+class CustomerManager(BaseUserManager):
+    def create_customer(self, mailCust, loginCust, password=None, **extra_fields):
+        if not mailCust:
+            raise ValueError("L'email est obligatoire.")
+        if not loginCust:
+            raise ValueError("Le nom d'utilisateur est obligatoire.")
 
-    USERNAME_FIELD = 'loginCust'
-    EMAIL_FIELD    = 'mailCust'
+        mailCust = self.normalize_email(mailCust)
+        loginCust = self.model.normalize_username(loginCust)
+
+        # Vérifier si un utilisateur avec la même adresse e-mail existe déjà
+        if self.model.objects.filter(mailCust=mailCust).exists():
+            raise ValueError("Un utilisateur avec cette adresse e-mail existe déjà.")
+
+        customer = self.model(mailCust=mailCust, loginCust=loginCust, **extra_fields)
+        customer.set_password(password)
+        customer.save(using=self._db)
+        return customer
+    
+    def create_superuser(self, mailCust, loginCust, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Le superutilisateur doit avoir is_superuser=True.')
+
+        return self.create_customer(mailCust, loginCust, password, **extra_fields)
+
+    def get_by_natural_key(self, username):
+        return self.get(mailCust=username)
+
+
+class Customer(AbstractBaseUser, PermissionsMixin):
+    idCustomer = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
+    mailCust = models.EmailField(max_length=100, unique=True)
+    loginCust = models.CharField(max_length=100, unique=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
+    objects = CustomerManager()
+
+    EMAIL_FIELD = 'mailCust'
+    USERNAME_FIELD = 'mailCust'
+    REQUIRED_FIELDS = ['loginCust']
+
+    groups = models.ManyToManyField(Group, related_name='customer_users')
+    user_permissions = models.ManyToManyField(Permission, related_name='customer_users')
+
+    def save(self, *args, **kwargs):
+        print(self.idCustomer)  #idCustomer lors de la création d'un nouvel utilisateur
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.loginCust
+
+    def get_full_name(self):
+        return self.loginCust
+
+    def get_short_name(self):
+        return self.loginCust
+   
 
 class Form(models.Model):
     idForm           = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
