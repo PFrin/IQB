@@ -1,6 +1,8 @@
 from django import forms
 from .models import *
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
+from .models import Customer
 
 ############################################
 #           Concepteur de Formulaire       #
@@ -40,19 +42,32 @@ class nbrAnswer(forms.Form):
 ############################################
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Nom d\'utilisateur'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Mot de passe'}))
+    username = forms.CharField(label="Nom d'utilisateur")
 
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError("Ce nom d'utilisateur est déjà utilisé.")
-        return username
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'autofocus': True, 'placeholder': "Nom d'utilisateur"})
 
 
-class CustomerCreationForm(forms.Form):
-    mailCust       = forms.CharField(widget=forms.EmailInput(attrs={'placeholder': 'mail'}))
-    loginCust      = forms.CharField()
+class CustomerCreationForm(UserCreationForm):
+    mailCust = forms.EmailField(label="Adresse e-mail")
+    loginCust = forms.CharField(label="Nom d'utilisateur")
+
+    class Meta(UserCreationForm.Meta):
+        model = Customer
+        fields = ('mailCust', 'loginCust', 'password1', 'password2')
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['mailCust']
+        user.loginCust = self.cleaned_data['loginCust']
+
+        if commit:
+            user.save()
+        return user
+
+
+
 
 
 
@@ -64,3 +79,26 @@ class CustomerCreationForm(forms.Form):
 #    class Meta:
 #        model = Form, 
 #        fields = ['nom', 'email']
+
+
+"""""
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from .models import Customer
+
+class CustomerCreationForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = Customer
+        fields = ('username', 'email')
+
+
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+from .models import Customer
+
+class CustomerAuthenticationForm(AuthenticationForm):
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
+"""
