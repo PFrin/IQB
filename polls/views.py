@@ -295,34 +295,31 @@ def home(request):
     else:
         return render(request, 'polls/login.html')
 
+import logging
+
+# Création d'un objet logger
+logger = logging.getLogger(__name__)
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            print(username)
-            print(password)
             user = authenticate(request, loginCust=username, password=password)
-            print(user)
             if user is not None and isinstance(user, Customer):
-                print("is instance")
-                print(user.idCustomer)
                 login(request, user)
-                return redirect('answerFormView')
+                logger.info('Utilisateur connecté avec succès: %s', user.loginCust)
+                #return HttpResponse("Ça fonctionne !")
+                return redirect('details',  user.loginCust)
             else:
-                print("Authentification invalide")
-                # Gérer le cas d'authentification invalide
-                return render(request, 'polls/login.html', {'error': 'Identifiants invalides.'})
-        else:
-          print("form is not valid")
-          username = form.cleaned_data['username']
-          password = form.cleaned_data['password']
-          print(username)
-          print(password)
+                error_message = 'Identifiants invalides.'
+                logger.warning('Échec de l\'authentification pour l\'utilisateur: %s', username)
+                return render(request, 'polls/login.html', {'form': form, 'error': error_message})
     else:
-        form = LoginForm(request)
+        form = LoginForm()
     return render(request, 'polls/login.html', {'form': form})
+
 
 
 def register_view(request):

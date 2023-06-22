@@ -145,4 +145,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL  =  "details" 
 LOGOUT_REDIRECT_URL  =  "home"   # nouveau
 
-#AUTH_USER_MODEL = 'authentication.Customer'
+AUTH_USER_MODEL = 'IQB.Customer'

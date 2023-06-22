@@ -12,6 +12,9 @@ class Type(models.Model):
     def __str__(self):
         return self.typeQuestion
 
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.db import models
+
 class CustomerManager(BaseUserManager):
     def create_customer(self, mailCust, loginCust, password=None, **extra_fields):
         if not mailCust:
@@ -41,7 +44,7 @@ class CustomerManager(BaseUserManager):
         return self.create_customer(mailCust, loginCust, password, **extra_fields)
 
     def get_by_natural_key(self, username):
-        return self.get(mailCust=username)
+        return self.get(loginCust=username)
 
 
 class Customer(AbstractBaseUser, PermissionsMixin):
@@ -54,8 +57,9 @@ class Customer(AbstractBaseUser, PermissionsMixin):
     objects = CustomerManager()
 
     EMAIL_FIELD = 'mailCust'
-    USERNAME_FIELD = 'mailCust'
+    USERNAME_FIELD = 'loginCust'
     REQUIRED_FIELDS = ['loginCust']
+    REQUIRED_FIELDS = ['mailCust']
 
     groups = models.ManyToManyField(Group, related_name='customer_users')
     user_permissions = models.ManyToManyField(Permission, related_name='customer_users')
