@@ -1,13 +1,153 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
-<head>
-  <title>{% block title %}{% endblock %}</title>
-</head>
-<body>
+<html lang="fr_FR">
+  <head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta property="og:locale" content="fr_FR"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="IODA Group Question Backoffice"/>
+    <meta property="og:description" content="implémentation d'un backoffice. Conception, mise en production de formulaire "/>
+    <meta property="og:site_name" content="IODA Group IQB"/>
 
-{% block content %}
-{% endblock %}
 
-</body>
-</html>
+    <link href="{% static 'IQB/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'IQB/css/style.css' %}" rel="stylesheet">
+    <script src="{% static 'IQB/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 
+    {% block styles %}
+    {% endblock %}
+
+  </head>
+  <body>
+    <header class="container-fluid">
+    {% if is_user_authenticated %}
+      <!-- Header pour utilisateur connecté -->
+      <nav class="navbar navbar-expand">
+        <div class="container">
+          <a class="navbar-brand" onclick="window.location.href='/{{ CurrentloginCust }}'"><img src="{{ logo_path }}" alt="Logo"></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="#">Forms</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">New Forms</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profilModal">
+                  <div id="profil-dropdown" class="profil-dropdown">
+                    <img class="profil-image" src="{% static 'IQB/images/profil.png' %}" alt="Profil">
+                  </div>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      <!-- Modal pour les informations de profil -->
+      <div class="modal fade" id="profilModal" tabindex="-1" aria-labelledby="profilModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="profilModalLabel">Profil</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Contenu du formulaire de profil -->
+              <form>
+                <div class="mb-3">
+                  <label for="emailInput" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="emailInput" placeholder="Votre email" value={{user.mailCust}} required>
+                </div>
+                <div class="mb-3">
+                  <label for="loginInput" class="form-label">Login</label>
+                  <input type="text" class="form-control" id="loginInput" placeholder="Votre login" value={{user.loginCust}} required>
+                </div>
+                <div class="mb-3">
+                  <label for="passwordInput" class="form-label">Password</label>
+                  <input type="password" class="form-control" id="passwordInput" placeholder="Votre password" required>
+                </div>
+                <div class="mb-3">
+                  <label for="profileImageInput" class="form-label">Logo du profil</label>
+                  <input type="file" class="form-control" id="profileImageInput">
+                </div>
+                <!--
+                <div class="mb-3">
+                  <label for="groupInput" class="form-label">Groupe</label>
+                  <input type="text" class="form-control" id="groupInput" placeholder="Votre groupe" required>
+                </div>
+                <div class="mb-3">
+                  <label for="permissionsInput" class="form-label">Permissions</label>
+                  <input type="text" class="form-control" id="permissionsInput" placeholder="Vos permissions" required>
+                </div>
+              -->
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+              <button type="button" class="btn btn-danger">Logout</button>
+              <button type="button" class="btn btn-primary">Modifier</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <!-- Header pour utilisateur non connecté -->
+      <nav class="navbar navbar-expand">
+        <div class="container">
+          <a class="navbar-brand" href="#"><img src="{% static 'IQB/images/LOGOENTIER-BLANC.png' %}" alt="Logo"></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profilModal">
+                  <div id="profil-" class="profil-">
+                    <img class="profil-image" src="{% static 'IQB/images/profil.png' %}" alt="Profil">
+                  </div>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+       <!-- Modal pour les informations de profil -->
+      <div class="modal fade" id="profilModal" tabindex="-1" aria-labelledby="profilModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="profilModalLabel">Profil</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+              <button type="button" class="btn btn-primary">login</button>
+              <button type="button" class="btn btn-primary">register</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    </header>
+                
+    {% block content %}
+    {% endblock %}
+                
+    <!-- Footer -->
+    <footer>
+
+
+    </footer>
+
+
+    </body>
+    </html>
+    

@@ -136,3 +136,10 @@ class UserAnswer(models.Model):
 
     def __str__(self):
         return self.text
+    
+class QuestionDependency(models.Model):
+    answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    dependent_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='dependency')
+
+    def __str__(self):
+        return f"{self.answer} -> {self.dependent_question}"

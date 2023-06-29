@@ -74,14 +74,17 @@ def details(request, loginCust):
         context = {
             'myCustomer': myCustomer,
             'myOnlineForm': myOnlineForm,
-            'myFormUnderConstruction': myFormUnderConstruction
+            'myFormUnderConstruction': myFormUnderConstruction,
+            'is_user_authenticated': request.user.is_authenticated,
         }
+        print("is_user_authenticated : ", request.user.is_authenticated)
         return render(request, 'polls/details.html', context)
     except Customer.DoesNotExist:
         raise Http404("Customer does not exist")
 
 
 @csrf_exempt
+@login_required
 def QuestionView(request,loginCust,idForm):
 
   #valeurs par défault
@@ -109,7 +112,7 @@ def QuestionView(request,loginCust,idForm):
       if key_type == "form":
         my_model_instance = Form.objects.get(idForm=key_id)
         if (key_name == "titleForm"):
-          pass 
+          my_model_instance.titleForm= key_value
         elif key_name == "introText":
           pass
         elif key_name == "concludingText":
@@ -125,7 +128,7 @@ def QuestionView(request,loginCust,idForm):
         #number
       elif key_type == "question":
         my_model_instance = Question.objects.get(idQuestion=key_question)
-        if (key_name == "title"):
+        if (key_name == "titleForm"):
           my_model_instance.title = key_value
         elif key_name == "type":
           myNewType = Type.objects.get(typeQuestion=key_value)
@@ -212,6 +215,18 @@ def QuestionView(request,loginCust,idForm):
       RmAnswer = Answer.objects.get(idAnswer=idAnswer)
       RmAnswer.delete()
 
+    if(action=="addPage"):
+      currentForm = Form.objects.get(idForm=idForm)
+      NewPage = Page.objects.create(
+        number = 1,
+        Form   = currentForm,
+      )
+      NewPage.save()
+      pass
+    
+    if(action=="publish"):
+      pass
+
     return JsonResponse({"success": True})
   else:
     template = loader.get_template('polls/createQuestion.html')
@@ -251,6 +266,7 @@ def QuestionView(request,loginCust,idForm):
       'info_form': info_form,
       'CurrentloginCust': CurrentloginCust,
       'myForm':myForm,
+      'is_user_authenticated': request.user.is_authenticated,
     }
     return HttpResponse(template.render(context, request))
 
@@ -301,24 +317,29 @@ import logging
 logger = logging.getLogger(__name__)
 
 def login_view(request):
-    if request.method == 'POST':
-        form = LoginForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, loginCust=username, password=password)
-            if user is not None and isinstance(user, Customer):
-                login(request, user)
-                logger.info('Utilisateur connecté avec succès: %s', user.loginCust)
-                #return HttpResponse("Ça fonctionne !")
-                return redirect('details',  user.loginCust)
-            else:
-                error_message = 'Identifiants invalides.'
-                logger.warning('Échec de l\'authentification pour l\'utilisateur: %s', username)
-                return render(request, 'polls/login.html', {'form': form, 'error': error_message})
-    else:
-        form = LoginForm()
-    return render(request, 'polls/login.html', {'form': form})
+  if request.method == 'POST':
+    form = LoginForm(request, data=request.POST)
+    if form.is_valid():
+      username = form.cleaned_data['username']
+      password = form.cleaned_data['password']
+      user = authenticate(request, loginCust=username, password=password)
+      if user is not None and isinstance(user, Customer):
+        login(request, user)
+        logger.info('Utilisateur connecté avec succès: %s', user.loginCust)
+        #return HttpResponse("Ça fonctionne !")
+        return redirect('details',  user.loginCust)
+      else:
+        error_message = 'Identifiants invalides.'
+        logger.warning('Échec de l\'authentification pour l\'utilisateur: %s', username)
+        return render(request, 'polls/login.html', {'form': form, 'error': error_message})
+  else:
+    form = LoginForm()
+
+    context = {
+    'is_user_authenticated': request.user.is_authenticated,
+    'form': form
+    }
+  return render(request, 'polls/login.html', context)
 
 
 

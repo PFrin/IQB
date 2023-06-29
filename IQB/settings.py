@@ -98,7 +98,7 @@ WSGI_APPLICATION = 'IQB.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'data_IQB',
+        'NAME': 'data_ibq',
         'USER': 'root',
         'PASSWORD': 'IODAIQB2023',
         'HOST': '127.0.0.1',

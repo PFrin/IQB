@@ -14,7 +14,7 @@
       {% csrf_token %}
     
       {% for question in page.question_set.all %}
-        <h3>{{ question.title }}</h3>
+        <h3>{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
     
         {% if question.type.typeQuestion == 'question ouverte' %}
           <textarea name="{{ question.idQuestion }}"></textarea>
@@ -48,6 +48,7 @@
     
       <input type="submit" value="Submit">
     </form>
+    <p>* Indique une question obligatoire<p>
   {% endfor %}
   <input type="submit" value="Envoyer le Formulaire">
 </body>

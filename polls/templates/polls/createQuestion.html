@@ -1,329 +1,161 @@
+{% extends 'master.html' %}
+{% load static %}
 
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>IODA Group IQB</title>
-        <meta name="description" content="implémentation d'un backoffice. Conception, mise en production de formulaire "/>
-        <link rel="canonical" href="https://www.iodagroup.com/"/>
-        <meta property="og:locale" content="fr_FR"/>
-        <meta property="og:type" content="website"/>
-        <meta property="og:title" content="IODA Group Question Backoffice"/>
-        <meta property="og:description" content="implémentation d'un backoffice. Conception, mise en production de formulaire "/>
-        <meta property="og:site_name" content="IODA Group IQB"/>
+{% block title %}IODA Group IQB{% endblock %}
 
-        <link rel="icon" href="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-32x32.png" sizes="32x32"/>
-        <link rel="icon" href="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-192x192.png" sizes="192x192"/>
-        <link rel="apple-touch-icon" href="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-180x180.png"/>
-        <meta name="msapplication-TileImage" content="https://www.iodagroup.com/wp-content/uploads/2021/10/cropped-IODA-LOGO-SEUL-270x270.png"/>
-        <link href="https://fonts.googleapis.com/css?family=Oswald:100,200,300,400,500,600,700,800,900|Poppins:100,200,300,400,500,600,700,800,900" rel="stylesheet">
-
-        <style>
-            .Question {
-                background-color: grey;
-                margin-top: 10px;
-            }
-        </style>
-
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-        <script>
-            $(document).ready(function() {
-                console.log("prêt");
-            
-                const reponses  = document.querySelectorAll('.reponse');
-                const tabIdForm = document.getElementsByTagName('h2');
-                const idForm    = "{{ myForm.idForm }}"
-
-                reponses.forEach(reponse => {
-                    const input      = reponse.querySelector('.key');
-                    const deleteIcon = reponse.querySelector('.delete-icon');
-                    const joinIcon   = reponse.querySelector('.join-icon');
-            
-                    // Lorsque la croix est cliquée, supprimer la proposition de réponse
-                    deleteIcon.addEventListener('click', () => {
-                        removeAnswer(reponse);
-                    });
-                    joinIcon.addEventListener('click', () => {
-                        JoinAnswer(reponse);
-                    });
-                });
-
-                $('.key').change(function() {
-                    var key_question = $(this).closest('.question').attr('id');
-                    var key_page = $(this).closest('.page').attr('id'); 
-                    var key_value;
-                    var key_id = $(this).attr('id');
-                    var answer_id = $(this).closest('.reponse').attr('id');
-                    //var key_type = $(this).closest('.reponse');
-                    var key_type = $(this).parent().attr('class');
-                    //var key_type = $(this).closest('.question').attr('id');
-                    var key_name = $(this).attr('name');
-                    console.log("changement")
-
-                    if ($(this).is('input[type="checkbox"]')) { // checkbox
-                        key_value = $(this).is(':checked');
-                        console.log(key_value)
-                    } else if ($(this).is('select')) {
-                        key_value=this.options[this.selectedIndex].text; 
-                    } else {
-                        key_value = $(this).val();
-                    }
-                    
-                    const loginCust = "{{ loginCust }}";
+{% block styles %}
+<style>
+    [contenteditable="true"]:hover::after {
+        content: "";
+        display: inline-block;
+        background-image: url('{% static "IQB/images/modifier.png" %}');
+        background-size: cover;
+        width: 24px;
+        height: 24px;
+    }
+</style>
+{% endblock %}
 
 
-                    console.log("Pour " + key_type + " Nouvelle valeur de l'élément avec l'ID '" + key_id + "': " + key_value);
-                    console.log(key_name)
-                    var latestFormId ="a0355265-9dc1-4edf-923f-d9c52c63adfa";
-
-                    $.ajax({
-                        type: 'POST',
-                        url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}',
-                        data: {
-                            'action': "update",
-                            'key_value': key_value, 
-                            'key_id': key_id,
-                            'key_type': key_type,
-                            'key_page':key_page,
-                            'key_question':key_question,
-                            'key_name':key_name,
-                            'answer_id':answer_id
-                            
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                console.log("succes");
-                                if (key_value = "question ouverte"){
-                                    location.reload()//dynamique
-                                }
-                            } else {
-                                console.log("echec");
-                            }
-                        }
-                    });
-                });
-            });
-
-            function duplicateQuestion(btn) {
-                var question_id = $(btn).attr('id');
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
-                    data: {
-                        'action': "duplicateQuestion",
-                        'question_id':question_id
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            console.log("succes");
-                            //créer la page dynamiquement ou refresh la page
-                            location.reload()
-                        } else {
-                            console.log("echec");
-                        }
-                    }
-                });
-            }
-            function JoinAnswer(answer) {
-                console.log(answer);
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
-                    data: {
-                        'action': 'JoinAnswer',
-                        'Answer': idAnswer
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            console.log("succes");
-                            location.reload();
-                            // Créer la page dynamiquement ou rafraîchir la page
-                        } else {
-                            console.log("echec");
-                        }
-                    }
-                });
-            }
-
-            function removeAnswer(answer) {
-                console.log(answer);
-                idAnswer = answer.getAttribute('id');
-                console.log(idAnswer);
-            
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
-                    data: {
-                        'action': 'removeAnswer',
-                        'Answer': idAnswer
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            console.log("succes");
-                            answer.remove();
-                            //location.reload();
-                            // Créer la page dynamiquement ou rafraîchir la page
-                        } else {
-                            console.log("echec");
-                        }
-                    }
-                });
-            }
-
-            function addAnswer(btn) {
-                console.log("Nouvelle proposition de réponse");
-                const questionId = $(btn).closest('.question').attr('id');
-            
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // URL de la vue Django
-                    data: {
-                        'action': 'addAnswer',
-                        'question_id': questionId
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            console.log("Succès");
-                            //addNewAnswer(); // Appeler la fonction pour ajouter une réponse après avoir reçu la réponse AJAX
-                            // Recharger la page ou affichage dynamique
-                            location.reload();
-                        } else {
-                            console.log("Échec");
-                        }
-                    }
-                });
-            }
-            
-            function addQuestion(btn) {
-                var key_page = $(btn).closest('.page').attr('id');
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
-                    data: {
-                        'action': "addQuestion",
-                        'key_page':key_page
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            console.log("succes");
-                            //créer la page dynamiquement ou refresh la page
-                            location.reload()
-                        } else {
-                            console.log("echec");
-                        }
-                    }
-                });
-            }
-
-            function removeQuestion(btn){
-                var key_question = $(btn).closest('.question').attr('id');
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
-                    data: {
-                        'action': "removeQuestion",
-                        'question_id':key_question
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            console.log("succes");
-                            //surpimer la question dynamiquement ou refresh la page
-                            location.reload()
-
-                        } else {
-                            console.log("echec");
-                        }
-                    }
-                });
-            }
-            
-                
-        </script>
-
-    </head>
-    <center>
-        <body class="navbar navbar-expend-lg navbar-light">
-            <h1>Création/modification Form</h1>
-            
-    <!--
-    <div style="background-color:grey">
-        <form method="post">
-            <label for="type-select">Choose a type:</label>
-            <select name="type" id="type-select" onchange="showFields();">
-                {% for x in myType%}
-                <option value="{{ x.typeQuestion}}"> {{ x.typeQuestion}}</option>
-                {% endfor %}
-            </select>
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="Remove" id="Remove">Supprimer</button>
-            <button type="Submit" id="dupliquer">dupliquer</button>
-            Si btn déjà valider changer en btn Modifier
-        </form>
-    </div>
-        
-    --> 
-
-            <hr>
-            <button type="button" onclick="window.location.href='/{{ CurrentloginCust }}'">accueil</button>
-
-            {% for form in info_form %}
-                <h2 class="key" id="{{ form.form.idForm }}" name ="{{ form.form.titleForm.name }}">titre :{{ form.form.titleForm }}</h2> <!-- titleForm   class   name -->
-                {% for page in form.pages %}
-                    <div id='allPages'>
-                        <h3 class="page">Page {{ page.page.number }}</h3> 
-                        <div id="{{ page.page.idPage }}" class="page">
-                            
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Panneau latéral de navigation -->
+            <div class="col-lg-3 col-md-3 col-sm-12 sidebar">
+                <!-- Titre du sidebar -->
+                <h2>Plan du Formulaire</h2>  
+                <!-- Contenu du panneau latéral de navigation -->
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#introduction">intro</a>
+                    </li>
+                    {% for form in info_form %}
+                        {% for page in form.pages %}
                             {% for question in page.questions %}
-                            <form method="post">
-                                {% csrf_token %}
-                                <div id="{{ question.question.idQuestion }}" class="question">
-                                    <input name="title" type="text" class="key" value="{{ question.question.title }}">    <!-- title   class   name -->
-                                    <br>
-                                    <input id="{{ question.question.idQuestion }}" class="key" name="{{ question.question.idQuestion.name }}" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>isObligatory</input> <!-- isObligatory   class   name id -->
-                                    <br>
-                                    <label for="type-select" >Choose a type:</label>
-                                    <select name="type" id="type-select" class="key">
-                                        {% for x in myType%}
-                                        <option value="{{ x.typeQuestion}}" {% if x.typeQuestion == question.question.type.typeQuestion %}selected{% endif %}> {{ x.typeQuestion}}</option>
-                                        {% endfor %}
-                                    </select>
-                                    {% if question.question.type.typeQuestion != 'question ouverte' %}
-                                    <p class="key">nbr réponse Min :{{ question.question.nbrAnswerMin }}</p>  <!-- isObligatory   class  ## ##-->
-                                    <p class="key">nbr réponse Max :{{ question.question.nbrAnswerMax }}</p>  <!-- lst déroulante en fonction du nbr de propositions de questions-->
-                                    {% endif %}
-                                    {% for answer in question.answers %}
-                                    <div id="{{ answer.idAnswer }}" class="reponse">
-                                        <input name="{{ answer.name }}" type="text" class="key" value="{{ answer.Answer }}">
-                                        <span class="delete-icon">&times;</span>
-                                        <span class="join-icon">--></span>
-                                    </div>
-                                    {% endfor %}
-                                    {% if question.question.type.typeQuestion != 'question ouverte' %}
-                                    <button type="button" onclick="addAnswer(this);">plus</button>  <!-- afficher cette ligne si ce n'est pas une question ouverte -->
-                                    {%else%}
-                                    <textarea disabled>réponse....</textarea>
-                                    {% endif %}
-                                    <button type="button" id="{{ question.question.idQuestion }}" onclick="removeQuestion(this);">Supprimer</button>
-                                    <button type="button" id="{{ question.question.idQuestion }}" onclick="duplicateQuestion(this);">dupliquer</button>
-
-                                </div>
-                            </form>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#{{ question.question.idQuestion }}">{{ question.question.title }}</a>
+                                </li>
                             {% endfor %}
-                        <button type="Submit" id="addQuestion" onclick="addQuestion(this);">Ajouter une Question</button>
+                        {% endfor %}
+                    {% endfor %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#conclusion">conclusion</a>
+                    </li>
+                </ul>
+            </div>
+
+
+            <!-- Contenu principal -->
+            <div class="col-lg-9 col-md-7 col-sm-12">
+                <div class="row">
+                    <!-- Contenu principal -->
+                    <div class="col-lg-10 col-md-8 col-sm-12">
+                        {% for form in info_form %}
+                        <h2 class="key" id="titleForm" name="{{ form.form.titleForm.name }}" contenteditable="true">{{ form.form.titleForm }}</h2>
                         <hr>
+                        <p contenteditable="true" id="introduction">{{ form.form.introText }}</p>
+                        <hr>
+                        {% for page in form.pages %}
+                            <div id='allPages'>
+                                <fieldset>
+                                    <legend class="page">Page {{ page.page.number }}</legend> 
+                                    <div id="{{ page.page.idPage }}" class="page">
+                                        {% for question in page.questions %}
+                                        <form method="post" style="margin-bottom: 10px;">
+                                            {% csrf_token %}
+                                            <div id="{{ question.question.idQuestion }}" class="question-container question card">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h3 contenteditable="true">{{ question.question.title }}</h3>
+                                                    <div class="arrow-icons">
+                                                        <span class="arrow-icon">&#8593;</span>
+                                                        <span class="arrow-icon">&#8595;</span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <label for="type-select">Choose a type:</label>
+                                                    <select name="type" id="type-select" class="form-select key" style="margin-bottom: 20px;>
+                                                        {% for x in myType %}
+                                                        <option value="{{ x.typeQuestion }}" {% if x.typeQuestion == question.question.type.typeQuestion %}selected{% endif %}>{{ x.typeQuestion }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    {% for answer in question.answers %}
+                                                    <div id="{{ answer.idAnswer }}" class="reponse d-flex justify-content-between align-items-center">
+                                                        <input name="{{ answer.name }}" type="text" class="form-control key" value="{{ answer.Answer }}">
+                                                        <button type="button" class="btn btn-primary">
+                                                            <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
+                                                        </button>
+                                                        <button type="button" class="btn btn-danger" >
+                                                            <img src="{% static 'IQB/images/poubelle.png' %}" alt="Supprimer" width="24" height="24">
+                                                        </button>
+                                                    </div>
+                                                    {% endfor %}
+                                                    {% if question.question.type.typeQuestion != 'question ouverte' %}
+                                                    <button type="button" onclick="addAnswer(this);" class="btn btn-primary">Ajouter une réponse</button>
+                                                    {% else %}
+                                                    <textarea disabled>réponse....</textarea>
+                                                    {% endif %}
+
+                                                </div>
+                                                <div class="card-footer">
+                                                    <div class="form-check">
+                                                        {% if question.question.type.typeQuestion != 'question ouverte' %}
+                                                        <p class="key">nbr réponse Min :{{ question.question.nbrAnswerMin }}</p>
+                                                        <p class="key">nbr réponse Max :{{ question.question.nbrAnswerMax }}</p>
+                                                        {% endif %}
+                                                        <input id="{{ question.question.idQuestion }}" class="form-check-input key" name="{{ question.question.idQuestion.name }}" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>
+                                                        <label class="form-check-label" for="{{ question.question.idQuestion }}">isObligatory</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        {% endfor %}
+                                        <button type="Submit" id="addQuestion" onclick="addQuestion(this);" class="btn btn-success">Ajouter une Question</button>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        {% endfor %}
+                        <button type="button" id="addPage" onclick='addPage("{{ myForm.idForm }}");' class="btn btn-primary">Ajouter une page</button>
+                        <hr>
+                        <p contenteditable="true" id="conclusion">{{ form.form.concludingText }}"</p>
+                        <hr>
+                        {% endfor %}
+                    </div>
+                        <!-- Menu interactif -->
+                        <div class="col-lg-2 col-md-2 col-sm-12 d-flex justify-content-center">
+                            <div class="menu-container d-flex flex-column" id="interactive-menu">
+                                <button type="button" class="btn btn-primary" style="margin-bottom: 100px;">
+                                    <img src="{% static 'IQB/images/publier.png' %}" alt="publier" width="24" height="24">
+                                </button>
+                                <button type="button" class="btn btn-danger" >
+                                    <img src="{% static 'IQB/images/poubelle.png' %}" alt="Supprimer" width="24" height="24">
+                                </button>
+                                <button type="button" class="btn btn-primary">
+                                    <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
+                                </button>
+                                <button type="button" class="btn btn-primary">
+                                    <img src="{% static 'IQB/images/dupliquer.png' %}" alt="Dupliquer" width="24" height="24">
+                                </button>
+                                <button type="button" class="btn btn-success">
+                                    <img src="{% static 'IQB/images/ajouter.png' %}" alt="Ajouter" width="24" height="24">
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    
-                {% endfor %}
-                <button type="button" id="addPage" onclick="addPage();">Ajouter une page</button>
-
-            {% endfor %}
+                </div>
             </div>
-            
+        </div>
+    </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
-        </body>
-    </center>
-</html>
+    <script>
+        $(document).ready(function() {
+            // Fonction pour masquer/afficher le panneau latéral
+            $("#sidebarToggle").click(function() {
+                $(".sidebar").toggleClass("d-none"); // Ajoute ou supprime la classe "d-none" pour masquer/afficher le panneau latéral
+                $(".col-lg-9").toggleClass("col-lg-12"); // Ajuste la taille de la zone principale
+            });
+        });
+    </script>
+{% endblock %}
