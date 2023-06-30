@@ -79,10 +79,6 @@ h2.card-title {
     display: none;
 }
 
-footer{
-    
-}
-
 #titleForm {
     white-space: nowrap;
     overflow: hidden;
@@ -97,3 +93,15 @@ footer{
     position:fixed
 }
 
+/*
+<style>
+ol.c {list-style-type: decimal;}
+ol.d {list-style-type: decimal-leading-zero;}
+ol.k {list-style-type: lower-alpha;}
+ol.n {list-style-type: lower-roman;}
+ol.p {list-style-type: upper-latin;}
+ol.q {list-style-type: upper-roman;}
+ol.r {list-style-type: none;}
+ol.s {list-style-type: inherit;}
+</style>
+*/

@@ -14,6 +14,26 @@
         height: 24px;
     }
 </style>
+<style>
+    .response-indent {
+        margin-left: 20px; /* Indentation de 20px */
+        list-style-type: none; /* Supprime les puces de la liste */
+    }
+</style>
+<style>
+    .no-list-style {
+        margin: 0;
+        padding: 0;
+    }
+    .question-container.selected {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(90deg,#2f6fe4,#f20252,#ff3800); border-box;
+        border: 4px solid transparent;
+    }
+</style>
+
+
+
 {% endblock %}
 
 
@@ -25,7 +45,7 @@
                 <!-- Titre du sidebar -->
                 <h2>Plan du Formulaire</h2>  
                 <!-- Contenu du panneau latéral de navigation -->
-                <ul class="nav flex-column">
+                <ol class="nav flex-column no-list-style">
                     <li class="nav-item">
                         <a class="nav-link" href="#introduction">intro</a>
                     </li>
@@ -41,7 +61,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#conclusion">conclusion</a>
                     </li>
-                </ul>
+                </ol>
             </div>
 
 
@@ -60,12 +80,13 @@
                                 <fieldset>
                                     <legend class="page">Page {{ page.page.number }}</legend> 
                                     <div id="{{ page.page.idPage }}" class="page">
+                                        <ol class="no-list-style">
                                         {% for question in page.questions %}
                                         <form method="post" style="margin-bottom: 10px;">
                                             {% csrf_token %}
                                             <div id="{{ question.question.idQuestion }}" class="question-container question card">
                                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                                    <h3 contenteditable="true">{{ question.question.title }}</h3>
+                                                    <li class="titleForm" contenteditable="true" style="margin-left: 10px;">{{ question.question.title }}</li>
                                                     <div class="arrow-icons">
                                                         <span class="arrow-icon">&#8593;</span>
                                                         <span class="arrow-icon">&#8595;</span>
@@ -73,18 +94,18 @@
                                                 </div>
                                                 <div class="card-body">
                                                     <label for="type-select">Choose a type:</label>
-                                                    <select name="type" id="type-select" class="form-select key" style="margin-bottom: 20px;>
+                                                    <select name="type" class="form-select key" style="margin-bottom: 20px;">
                                                         {% for x in myType %}
                                                         <option value="{{ x.typeQuestion }}" {% if x.typeQuestion == question.question.type.typeQuestion %}selected{% endif %}>{{ x.typeQuestion }}</option>
                                                         {% endfor %}
                                                     </select>
                                                     {% for answer in question.answers %}
                                                     <div id="{{ answer.idAnswer }}" class="reponse d-flex justify-content-between align-items-center">
-                                                        <input name="{{ answer.name }}" type="text" class="form-control key" value="{{ answer.Answer }}">
-                                                        <button type="button" class="btn btn-primary">
+                                                        <input name="{{ answer.x }}" type="text" class="form-control key" value="{{ answer.Answer }}">
+                                                        <button type="button" class="btn btn-primary" title="lier à une question">
                                                             <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
                                                         </button>
-                                                        <button type="button" class="btn btn-danger" >
+                                                        <button type="button" class="btn btn-danger" title="supprimer">
                                                             <img src="{% static 'IQB/images/poubelle.png' %}" alt="Supprimer" width="24" height="24">
                                                         </button>
                                                     </div>
@@ -96,12 +117,14 @@
                                                     {% endif %}
 
                                                 </div>
-                                                <div class="card-footer">
+                                                <div class="card-footer d-flex justify-content-between align-items-center">
                                                     <div class="form-check">
                                                         {% if question.question.type.typeQuestion != 'question ouverte' %}
                                                         <p class="key">nbr réponse Min :{{ question.question.nbrAnswerMin }}</p>
                                                         <p class="key">nbr réponse Max :{{ question.question.nbrAnswerMax }}</p>
                                                         {% endif %}
+                                                    </div>
+                                                    <div class="response-info">
                                                         <input id="{{ question.question.idQuestion }}" class="form-check-input key" name="{{ question.question.idQuestion.name }}" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>
                                                         <label class="form-check-label" for="{{ question.question.idQuestion }}">isObligatory</label>
                                                     </div>
@@ -109,7 +132,7 @@
                                             </div>
                                         </form>
                                         {% endfor %}
-                                        <button type="Submit" id="addQuestion" onclick="addQuestion(this);" class="btn btn-success">Ajouter une Question</button>
+                                        </ol>
                                     </div>
                                 </fieldset>
                             </div>
@@ -123,39 +146,125 @@
                         <!-- Menu interactif -->
                         <div class="col-lg-2 col-md-2 col-sm-12 d-flex justify-content-center">
                             <div class="menu-container d-flex flex-column" id="interactive-menu">
-                                <button type="button" class="btn btn-primary" style="margin-bottom: 100px;">
+                                <button type="submit" class="btn btn-primary" name="menu" value="publier" title="Publier">
                                     <img src="{% static 'IQB/images/publier.png' %}" alt="publier" width="24" height="24">
                                 </button>
-                                <button type="button" class="btn btn-danger" >
+                                <button type="button" class="btn btn-primary" name="menu" value="preview" title="preview">
+                                    <img src="{% static 'IQB/images/visible.png' %}" alt="preview" width="24" height="24">
+                                </button>
+                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#Parametres" style="margin-bottom: 100px;">
+                                    <button type="submit" class="btn btn-secondary" name="menu" value="parametre" title="Parametres">
+                                        <img src="{% static 'IQB/images/parametre.png' %}" alt="parametre" width="24" height="24">
+                                    </button>
+                                </a>
+                                <button type="submit" class="btn btn-danger" name="menu" value="supprimer" title="supprimer">
                                     <img src="{% static 'IQB/images/poubelle.png' %}" alt="Supprimer" width="24" height="24">
                                 </button>
-                                <button type="button" class="btn btn-primary">
-                                    <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
-                                </button>
-                                <button type="button" class="btn btn-primary">
+                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#lienQuestion" title="lien de la question">
+                                    <button type="submit" class="btn btn-primary" name="menu" value="lier">
+                                        <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
+                                    </button>
+                                </a>
+                                <button type="submit" class="btn btn-primary" name="menu" value="dupliquer" title="Dupliquer question">
                                     <img src="{% static 'IQB/images/dupliquer.png' %}" alt="Dupliquer" width="24" height="24">
                                 </button>
-                                <button type="button" class="btn btn-success">
+                                <button type="submit" class="btn btn-success" name="menu" value="ajouter" title="ajouter question">
                                     <img src="{% static 'IQB/images/ajouter.png' %}" alt="Ajouter" width="24" height="24">
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </div>  
                 </div>
             </div>
         </div>
     </div>
+<!-- Modal pour les liens d'une questions: conditionspour qu'elle s'affiche -->
+<div class="modal fade" id="lienQuestion" tabindex="-1" aria-labelledby="lienQuestionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lienQuestionLabel">Profil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Contenu du formulaire de profil -->
+                {% for form in info_form %}
+                    {% for page in form.pages %}
+                        {% for question in page.questions %}
+                            <li class="nav-item">
+                                {% if question.question.type.typeQuestion == 'question ouverte' %}
+                                    <del>{{ question.question.title }}</del>
+                                {% else %}
+                                    {{ question.question.title }}
+                                    <ul class="response-indent">
+                                        {% for answer in question.answers %}
+                                            <li>
+                                                <input type="checkbox" value="true">
+                                                <label>{{ answer.Answer }}</label>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-danger">enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal pour les parametre -->
+<div class="modal fade" id="Parametres" tabindex="-1" aria-labelledby="ParametresLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ParametresLabel">Parametres</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label>numérotation des questions</label>
+                <select name="numerotation" id="type-select" class="form-select key">
+                    <option value="decimal">decimal</option>
+                    <option value="de   cimal-leading-zero">decimal-leading-zero</option>
+                    <option value="lower-alpha">lower-alpha</option>
+                    <option value="lower-roman">lower-roman</option>
+                    <option value="upper-latin">upper-latin</option>
+                    <option value="upper-roman">upper-roman</option>
+                    <option value="none">none</option>
+                    <option value="inherit">inherit</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-danger">enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Fonction pour sélectionner une question et désélectionner les autres
+    function selectQuestion(question) {
+        var questions = document.getElementsByClassName("question-container");
+        for (var i = 0; i < questions.length; i++) {
+            var currentQuestion = questions[i];
+            if (currentQuestion === question) {
+                currentQuestion.classList.add("selected");
+            } else {
+                currentQuestion.classList.remove("selected");
+            }
+        }
+    }
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            // Fonction pour masquer/afficher le panneau latéral
-            $("#sidebarToggle").click(function() {
-                $(".sidebar").toggleClass("d-none"); // Ajoute ou supprime la classe "d-none" pour masquer/afficher le panneau latéral
-                $(".col-lg-9").toggleClass("col-lg-12"); // Ajuste la taille de la zone principale
-            });
+    // Écouteur d'événement pour appeler la fonction selectQuestion lors du clic sur une question
+    var questions = document.getElementsByClassName("question-container");
+    for (var i = 0; i < questions.length; i++) {
+        questions[i].addEventListener("click", function() {
+            selectQuestion(this);
         });
-    </script>
+    }
+</script>
 {% endblock %}

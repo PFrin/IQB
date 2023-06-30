@@ -242,7 +242,7 @@ def QuestionView(request,loginCust,idForm):
       'pages': []
     }
     for page in myPages:
-      myQuestions = Question.objects.filter(page=page)
+      myQuestions = Question.objects.filter(page=page).order_by('order')
       page_data = {
         'page': page,
         'questions': []

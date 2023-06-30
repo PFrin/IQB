@@ -1,0 +1,379 @@
+<!-- createQuestions.html -->
+
+{% extends 'master.html' %}
+
+{% block title %}IODA Group IQB{% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Panneau latéral de navigation -->
+            <div class="col-lg-3 col-md-4 col-sm-12 sidebar">
+                <!-- Titre du sidebar -->
+                <h2>Plan du Formulaire</h2>  
+                <!-- Contenu du panneau latéral de navigation -->
+                <ul class="nav flex-column">
+                    {% for form in info_form %}
+                        {% for page in form.pages %}
+                            {% for question in page.questions %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#{{ question.question.idQuestion }}">{{ question.question.title }}</a>
+                                </li>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+
+
+            <!-- Contenu principal -->
+            <div class="col-lg-9 col-md-8 col-sm-12">
+                <!-- Bouton pour réduire le sidebar -->
+                <button id="sidebarToggle" class="btn btn-primary" onclick="sidebarToggle()">Réduire le sidebar</button>
+                <h1>Création/modification Form</h1>
+                <hr>
+                <button type="button"class="btn btn-primary" onclick='publish()'>publier</button>
+
+                {% for form in info_form %}
+                <!-- <h2 class="key" id="{{ form.form.idForm }}" name ="{{ form.form.titleForm.name }}" contenteditable="true">{{ form.form.titleForm }}</h2> --> <!-- titleForm   class   name -->
+                <h2 class="key" id="titleForm" name ="{{ form.form.titleForm.name }}" contenteditable="true">{{ form.form.titleForm }}</h2> <!-- titleForm   class   name -->
+                {% for page in form.pages %}
+                    <div id='allPages'>
+                        <fieldset>
+                        <legend class="page">Page {{ page.page.number }}</legend> 
+                            <div id="{{ page.page.idPage }}" class="page">
+                             
+                                {% for question in page.questions %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div id="{{ question.question.idQuestion }}" class="question-container question">
+                                        <h3 contenteditable="true">{{ question.question.title }}</h3>
+                                        <label for="type-select" >Choose a type:</label>
+                                        <select name="type" id="type-select" class="key">
+                                            {% for x in myType%}
+                                            <option value="{{ x.typeQuestion}}" {% if x.typeQuestion == question.question.type.typeQuestion %}selected{% endif %}> {{ x.typeQuestion}}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <br>
+                                        {% if question.question.type.typeQuestion != 'question ouverte' %}
+                                        <p class="key">nbr réponse Min :{{ question.question.nbrAnswerMin }}</p>  <!-- isObligatory   class  ## ##-->
+                                        <p class="key">nbr réponse Max :{{ question.question.nbrAnswerMax }}</p>  <!-- lst déroulante en fonction du nbr de propositions de questions-->
+                                        {% endif %}
+                                        {% for answer in question.answers %}
+                                        <div id="{{ answer.idAnswer }}" class="reponse">
+                                            <input name="{{ answer.name }}" type="text" class="key" value="{{ answer.Answer }}">
+                                            <span class="delete-icon">&times;</span>
+                                            <!--<span class="join-icon">-></span>-->
+                                        </div>
+                                        {% endfor %}
+                                        {% if question.question.type.typeQuestion != 'question ouverte' %}
+                                        <button type="button" onclick="addAnswer(this);">plus</button>  <!-- afficher cette ligne si ce n'est pas une question ouverte -->
+                                        {%else%}
+                                        <textarea disabled>réponse....</textarea>
+                                        {% endif %}
+                                        <input id="{{ question.question.idQuestion }}" class="key" name="{{ question.question.idQuestion.name }}" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>isObligatory</input> <!-- isObligatory   class   name id -->
+                                        <button type="button" id="{{ question.question.idQuestion }}" onclick="removeQuestion(this);">Supprimer</button>
+                                        <button type="button" id="{{ question.question.idQuestion }}" onclick="duplicateQuestion(this);">dupliquer</button>
+
+                                    </div>
+                                    <div class="question-order">
+                                        <span class="arrow-icon" onclick="moveQuestionUp(this);">&#8593;</span>
+                                        <span class="arrow-icon" onclick="moveQuestionDown(this);">&#8595;</span>
+                                    </div>
+                                </form>
+                                {% endfor %}
+                                <button type="Submit" id="addQuestion" onclick="addQuestion(this);">Ajouter une Question</button>
+                            </div>
+                        </fieldset>
+                    </div>
+                {% endfor %}
+                <button type="button" id="addPage" onclick='addPage("{{ myForm.idForm }}");'>Ajouter une page</button>
+
+                {% endfor %}
+            </div>
+            
+            <!-- Contenu principal -->
+            
+        </div>
+
+        <!-- pour chaque question je veux le titre de la question dans une balise avec contenteditable, apres le nom de la question mettre sur la droite le type de la question. En dessous si il y a des propositions de réponses mettre la proposition dans une balise avec contenteditable, à sa droite la croix pour supprimer et aussi le bouton pour lier la réponse. si l'on clique sur lier la réponse.Les propositions de réponses suivantes sont mises en dessous alignés. J'aimerais rendre possible la modification du nombre de conolonnes et lignes sur lesquels seront affichés les propositions de réponses, est ce possible ?-->
+
+        <!-- je veux que tu m'aide a faire le style de ma page à l 'aide de bootstrap.dans un premier temps je veux le mennu déroulant a gauche avec le bouton pour le cacher ou non, Dans le menu déroulant on retrouvera le plan du site. ensuite au centre de la page on retrouvera les "pagesé dans fieldset et un border black. Sur chaque page on retrouve les questions. Pour chaques question on retrouve à gauche deux flèches l'une de dessous de l'autre. a droite des fleches la questions dans un block contenant le titre en haut, la liste déroulante a droite pour choisir le type. En dessous je veux pouvoir choisir sur combinen de colonne ou lignes sont affichés les propositions de réponses"-->
+
+    </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <script>
+            const loginCust = "{{ CurrentloginCust }}";
+            $(document).ready(function() {
+                console.log("prêt");
+            
+                const reponses  = document.querySelectorAll('.reponse');
+                const tabIdForm = document.getElementsByTagName('h2');
+                const idForm    = "{{ myForm.idForm }}"
+
+
+                reponses.forEach(reponse => {
+                    const input      = reponse.querySelector('.key');
+                    const deleteIcon = reponse.querySelector('.delete-icon');
+                    const joinIcon   = reponse.querySelector('.join-icon');
+            
+                    // Lorsque la croix est cliquée, supprimer la proposition de réponse
+                    deleteIcon.addEventListener('click', () => {
+                        removeAnswer(reponse);
+                    });
+                    joinIcon.addEventListener('click', () => {
+                        JoinAnswer(reponse);
+                    });
+                });
+
+                $('.key').change(function() {
+                    var key_question = $(this).closest('.question').attr('id');
+                    var key_page = $(this).closest('.page').attr('id'); 
+                    var key_value;
+                    var key_id = $(this).attr('id');
+                    var answer_id = $(this).closest('.reponse').attr('id');
+                    //var key_type = $(this).closest('.reponse');
+                    var key_type = $(this).parent().attr('class');
+                    //var key_type = $(this).closest('.question').attr('id');
+                    var key_name = $(this).attr('name');
+                    console.log("changement")
+
+                    if ($(this).is('input[type="checkbox"]')) { // checkbox
+                        key_value = $(this).is(':checked');
+                        console.log(key_value)
+                    } else if ($(this).is('select')) {
+                        key_value=this.options[this.selectedIndex].text; 
+                    } else {
+                        key_value = $(this).val();
+                    }
+                    
+                    const loginCust = "{{ loginCust }}";
+
+
+                    console.log("Pour " + key_type + " Nouvelle valeur de l'élément avec l'ID '" + key_id + "': " + key_value);
+
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}',
+                        data: {
+                            'action': "update",
+                            'key_value': key_value, 
+                            'key_id': key_id,
+                            'key_type': key_type,
+                            'key_page':key_page,
+                            'key_question':key_question,
+                            'key_name':key_name,
+                            'answer_id':answer_id
+                            
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                console.log("succes");
+                                if (key_value = "question ouverte"){
+                                    location.reload()//dynamique
+                                }
+                            } else {
+                                console.log("echec");
+                            }
+                        }
+                    });
+                });
+            });
+
+            function duplicateQuestion(btn) {
+                var question_id = $(btn).attr('id');
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                    data: {
+                        'action': "duplicateQuestion",
+                        'question_id':question_id
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            //créer la page dynamiquement ou refresh la page
+                            location.reload()
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
+            function JoinAnswer(answer) {
+                console.log(answer);
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                    data: {
+                        'action': 'JoinAnswer',
+                        'Answer': idAnswer
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            location.reload();
+                            // Créer la page dynamiquement ou rafraîchir la page
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
+
+            function removeAnswer(answer) {
+                console.log(answer);
+                idAnswer = answer.getAttribute('id');
+                console.log(idAnswer);
+            
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                    data: {
+                        'action': 'removeAnswer',
+                        'Answer': idAnswer
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            answer.remove();
+                            //location.reload();
+                            // Créer la page dynamiquement ou rafraîchir la page
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
+
+            function addAnswer(btn) {
+                console.log("Nouvelle proposition de réponse");
+                const questionId = $(btn).closest('.question').attr('id');
+            
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // URL de la vue Django
+                    data: {
+                        'action': 'addAnswer',
+                        'question_id': questionId
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("Succès");
+                            //addNewAnswer(); // Appeler la fonction pour ajouter une réponse après avoir reçu la réponse AJAX
+                            // Recharger la page ou affichage dynamique
+                            location.reload();
+                        } else {
+                            console.log("Échec");
+                        }
+                    }
+                });
+            }
+            
+            function addQuestion(btn) {
+                var key_page = $(btn).closest('.page').attr('id');
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                    data: {
+                        'action': "addQuestion",
+                        'key_page':key_page
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            //créer la page dynamiquement ou refresh la page
+                            location.reload()
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
+
+            function removeQuestion(btn){
+                var key_question = $(btn).closest('.question').attr('id');
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                    data: {
+                        'action': "removeQuestion",
+                        'question_id':key_question
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            //surpimer la question dynamiquement ou refresh la page
+                            location.reload()
+
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            }
+
+
+
+            function publish(){
+                console.log("publier le formulaire " + idForm);
+            }
+
+            function addPage(idForm){
+                console.log("add Page");
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'QuestionView' loginCust=CurrentloginCust idForm=myForm.idForm %}",
+                    data: {
+                        'action': "addPage",
+                        'idForm:': "titleForm",
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("succes");
+                            //surpimer la question dynamiquement ou refresh la page
+                            location.reload()
+
+                        } else {
+                            console.log("echec");
+                        }
+                    }
+                });
+            } 
+
+
+            // Fonction pour déplacer une question vers le haut
+            function moveQuestionUp(element) {
+                var question = $(element).closest('.question');
+                var previousQuestion = question.prev('.question');
+                console.log("vers le haut");
+
+                if (previousQuestion.length > 0) {
+                    previousQuestion.before(question);
+                }
+            }
+        
+            // Fonction pour déplacer une question vers le bas
+            function moveQuestionDown(element) {
+                var question = $(element).closest('.question');
+                var nextQuestion = question.next('.question');
+                console.log("vers le bas");
+
+                if (nextQuestion.length > 0) {
+                    nextQuestion.after(question);
+                }
+            }
+           
+        </script>
+        <script>
+            $(document).ready(function() {
+                // Fonction pour masquer/afficher le panneau latéral
+                $("#sidebarToggle").click(function() {
+                    $(".sidebar").toggleClass("d-none"); // Ajoute ou supprime la classe "d-none" pour masquer/afficher le panneau latéral
+                    $(".col-lg-9").toggleClass("col-lg-12"); // Ajuste la taille de la zone principale
+                });
+            });
+        </script>
+    {% endblock %}
