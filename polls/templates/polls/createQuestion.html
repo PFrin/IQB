@@ -27,13 +27,10 @@
     }
     .question-container.selected {
         background: linear-gradient(white, white) padding-box,
-                    linear-gradient(90deg,#2f6fe4,#f20252,#ff3800); border-box;
+                    linear-gradient(90deg,#2f6fe4,#f20252,#ff3800), border-box;
         border: 4px solid transparent;
     }
 </style>
-
-
-
 {% endblock %}
 
 
@@ -71,9 +68,9 @@
                     <!-- Contenu principal -->
                     <div class="col-lg-10 col-md-8 col-sm-12">
                         {% for form in info_form %}
-                        <h2 class="key" id="titleForm" name="{{ form.form.titleForm.name }}" contenteditable="true">{{ form.form.titleForm }}</h2>
+                        <h2 class="key" id="{{ form.form.idForm }}" name="titleForm" contenteditable="true">{{ form.form.titleForm }}</h2>
                         <hr>
-                        <p contenteditable="true" id="introduction">{{ form.form.introText }}</p>
+                        <p contenteditable="true" id="{{ form.form.idForm }}" name="introText">{{ form.form.introText }}</p>
                         <hr>
                         {% for page in form.pages %}
                             <div id='allPages'>
@@ -86,32 +83,40 @@
                                             {% csrf_token %}
                                             <div id="{{ question.question.idQuestion }}" class="question-container question card">
                                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                                    <li class="titleForm" contenteditable="true" style="margin-left: 10px;">{{ question.question.title }}</li>
-                                                    <div class="arrow-icons">
-                                                        <span class="arrow-icon">&#8593;</span>
-                                                        <span class="arrow-icon">&#8595;</span>
-                                                    </div>
+                                                    <li contenteditable="true" style="margin-left: 10px;" id="{{ question.question.idQuestion }}" name="title">{{ question.question.title }}</li>
                                                 </div>
                                                 <div class="card-body">
-                                                    <label for="type-select">Choose a type:</label>
-                                                    <select name="type" class="form-select key" style="margin-bottom: 20px;">
+                                                    <label for="type-select">Choisir un type : </label>
+                                                    <select name="type" class="form-select questionParameter" style="margin-bottom: 20px;">
                                                         {% for x in myType %}
-                                                        <option value="{{ x.typeQuestion }}" {% if x.typeQuestion == question.question.type.typeQuestion %}selected{% endif %}>{{ x.typeQuestion }}</option>
+                                                        <option name="type_question" value="{{ x.typeQuestion }}" {% if x.typeQuestion == question.question.type.typeQuestion %}selected{% endif %}>{{ x.typeQuestion }}</option>
                                                         {% endfor %}
                                                     </select>
+                                                    <ol class="no-list-style">
                                                     {% for answer in question.answers %}
-                                                    <div id="{{ answer.idAnswer }}" class="reponse d-flex justify-content-between align-items-center">
-                                                        <input name="{{ answer.x }}" type="text" class="form-control key" value="{{ answer.Answer }}">
-                                                        <button type="button" class="btn btn-primary" title="lier à une question">
-                                                            <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
-                                                        </button>
-                                                        <button type="button" class="btn btn-danger" title="supprimer">
-                                                            <img src="{% static 'IQB/images/poubelle.png' %}" alt="Supprimer" width="24" height="24">
-                                                        </button>
+                                                    <div id="{{ answer.idAnswer }}" class="reponse d-flex align-items-center">
+                                                        <div class="col-10">
+                                                            <div>
+                                                                <li  id="{{ answer.idAnswer }}" name="Answer" class="réponse" contenteditable="true" style="max-width: 100%; margin-left: 10px;">
+                                                                    {{ answer.Answer }}
+                                                                </li>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-2 d-flex justify-content-end">
+                                                            <button type="button" name="answer" class="btn btn-primary" title="Lier à une question">
+                                                                <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
+                                                            </button>
+                                                            <button type="button" name="answer" class="btn btn-danger" title="Supprimer">
+                                                                <img src="{% static 'IQB/images/poubelle.png' %}" alt="Supprimer" width="24" height="24">
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                     {% endfor %}
+                                                    </ol>
+                                                
+                                                
                                                     {% if question.question.type.typeQuestion != 'question ouverte' %}
-                                                    <button type="button" onclick="addAnswer(this);" class="btn btn-primary">Ajouter une réponse</button>
+                                                    <button type="button" name="answer" class="btn btn-primary">Ajouter une réponse</button>
                                                     {% else %}
                                                     <textarea disabled>réponse....</textarea>
                                                     {% endif %}
@@ -119,14 +124,16 @@
                                                 </div>
                                                 <div class="card-footer d-flex justify-content-between align-items-center">
                                                     <div class="form-check">
-                                                        {% if question.question.type.typeQuestion != 'question ouverte' %}
-                                                        <p class="key">nbr réponse Min :{{ question.question.nbrAnswerMin }}</p>
-                                                        <p class="key">nbr réponse Max :{{ question.question.nbrAnswerMax }}</p>
+                                                        {% if question.question.type.typeQuestion == 'choix multiple' %}
+                                                        <p class="nbrAnswerMin questionParameter">Nombre de réponse minimum :</p>
+                                                        <input type="number " name="nbrAnswerMinInput" min="1" value="{{ question.question.nbrAnswerMin }}">
+                                                        <p class="nbrAnswerMax questionParameter">Nombre de réponse maximum :</p>
+                                                        <input type="number" name="nbrAnswerMaxInput" min="1" value="{{ question.question.nbrAnswerMax }}" >
                                                         {% endif %}
-                                                    </div>
+                                                      </div>
                                                     <div class="response-info">
-                                                        <input id="{{ question.question.idQuestion }}" class="form-check-input key" name="{{ question.question.idQuestion.name }}" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>
-                                                        <label class="form-check-label" for="{{ question.question.idQuestion }}">isObligatory</label>
+                                                        <input id="{{ question.question.idQuestion }}" class="form-check-input questionParameter" name="isObligatory" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>
+                                                        <label class="form-check-label">Est obligatoire</label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -136,10 +143,11 @@
                                     </div>
                                 </fieldset>
                             </div>
+                            <button type="button" id="addPage" onclick='form_page({{ page.page.number }},"addPage");' class="btn btn-primary">Ajouter une page</button>
+                            <button type="button" id="delPage" onclick='form_page({{ page.page.number }},"delPage");' class="btn btn-primary">Supprimmer la page</button>
                         {% endfor %}
-                        <button type="button" id="addPage" onclick='addPage("{{ myForm.idForm }}");' class="btn btn-primary">Ajouter une page</button>
                         <hr>
-                        <p contenteditable="true" id="conclusion">{{ form.form.concludingText }}"</p>
+                        <p contenteditable="true"id="{{ form.form.idForm }}" name="concludingText" >{{ form.form.concludingText }}"</p>
                         <hr>
                         {% endfor %}
                     </div>
@@ -165,6 +173,12 @@
                                         <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
                                     </button>
                                 </a>
+                                <button type="submit" class="btn btn-primary" name="menu" value="haut" title="Déplacer vers le haut">
+                                    <img src="{% static 'IQB/images/flecheHaut.png' %}" alt="flèche vers le haut" width="24" height="24">
+                                </button>
+                                <button type="submit" class="btn btn-primary" name="menu" value="bas" title="Déplacer vers le bas">
+                                    <img src="{% static 'IQB/images/flecheBas.png' %}" alt="flèche vers le bas" width="24" height="24">
+                                </button>
                                 <button type="submit" class="btn btn-primary" name="menu" value="dupliquer" title="Dupliquer question">
                                     <img src="{% static 'IQB/images/dupliquer.png' %}" alt="Dupliquer" width="24" height="24">
                                 </button>
@@ -217,7 +231,72 @@
         </div>
     </div>
 </div>
+<!-- Modal pour les liens d'une réponse: question associée -->
+<div class="modal fade" id="lienReponse" tabindex="-1" aria-labelledby="lienReponseLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lienReponseLabel">Profil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Contenu du formulaire de profil -->
+                {% for form in info_form %}
+                    {% for page in form.pages %}
+                        {% for question in page.questions %}
+                            <li class="nav-item">
+                                {% if question.question.type.typeQuestion == 'question ouverte' %}
+                                    <del>{{ question.question.title }}</del>
+                                {% else %}
+                                    {{ question.question.title }}
+                                    <ul class="response-indent">
+                                        {% for answer in question.answers %}
+                                            <li>
+                                                <input type="checkbox" value="true">
+                                                <label>{{ answer.Answer }}</label>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-danger">enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Modal pour les parametre -->
+<!--
+    @ un screen a gauche avec un formulaire pour gérer les parametres du form trier par "chapire"
+
+        -parametre global :
+            -publier form
+            -changer date Mep
+            -voir date crérotation
+            -
+        -parametre mise en page 
+            -font du text
+            -balise numérotation questions
+            -balise numérotation réponses
+            -changer la font du textare
+            -changer la taille
+            -changer la couleure
+        -parametre style
+        changer
+        
+
+    @ un screen à droite avec la préview en direct
+        - bouton pour aller sur la preview ?
+        - mise à jour en direct de la preview en fontion des parametres
+    
+    
+
+-->
 <div class="modal fade" id="Parametres" tabindex="-1" aria-labelledby="ParametresLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -229,7 +308,7 @@
                 <label>numérotation des questions</label>
                 <select name="numerotation" id="type-select" class="form-select key">
                     <option value="decimal">decimal</option>
-                    <option value="de   cimal-leading-zero">decimal-leading-zero</option>
+                    <option value="decimal-leading-zero">decimal-leading-zero</option>
                     <option value="lower-alpha">lower-alpha</option>
                     <option value="lower-roman">lower-roman</option>
                     <option value="upper-latin">upper-latin</option>
@@ -245,26 +324,351 @@
         </div>
     </div>
 </div>
-<script>
-    // Fonction pour sélectionner une question et désélectionner les autres
-    function selectQuestion(question) {
-        var questions = document.getElementsByClassName("question-container");
-        for (var i = 0; i < questions.length; i++) {
-            var currentQuestion = questions[i];
-            if (currentQuestion === question) {
-                currentQuestion.classList.add("selected");
-            } else {
-                currentQuestion.classList.remove("selected");
-            }
-        }
-    }
 
-    // Écouteur d'événement pour appeler la fonction selectQuestion lors du clic sur une question
-    var questions = document.getElementsByClassName("question-container");
-    for (var i = 0; i < questions.length; i++) {
-        questions[i].addEventListener("click", function() {
-            selectQuestion(this);
+
+<!-- SCRIPT JS -->
+<script>
+    ///////////////////
+    //   VARIABLES   //
+    ///////////////////
+    const loginCust = "{{ CurrentloginCust }}";
+    const idForm    = "{{ myForm.idForm }}";
+
+    //////////////////
+    //   form_page  // ✓
+    //////////////////
+    /*
+    # Ajouter pages ✓
+    # Suprimer page ✓
+    */
+    function form_page(nbr, btn) {
+        const data = {
+            action: "form_page",
+            nbr: nbr,
+            btn: btn,
+            id : idForm
+        };
+        console.log(data);
+        $.ajax({
+            type: 'POST',
+            url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}',
+            data: data,
+            success: function(response) {
+                // Gérez la réponse du serveur en cas de succès
+                console.log('Mise à jour réussie');
+                location.reload();
+            },
+            error: function(error) {
+                // Gérez les erreurs de la requête AJAX
+                console.error('Erreur lors de la mise à jour', error);
+            }
         });
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const loginCust = "{{ CurrentloginCust }}";
+        const idForm    = "{{ myForm.idForm }}";
+        // Fonction pour sélectionner une question et désélectionner les autres
+        function selectQuestion(question) {
+            var questions = document.getElementsByClassName("question-container");
+            for (var i = 0; i < questions.length; i++) {
+                var currentQuestion = questions[i];
+                if (currentQuestion === question) {
+                    currentQuestion.classList.add("selected");
+                } else {
+                    currentQuestion.classList.remove("selected");
+                }
+            }
+        }
+    
+        // Écouteur d'événement pour appeler la fonction selectQuestion lors du clic sur une question
+        var questions = document.getElementsByClassName("question-container");
+        for (var i = 0; i < questions.length; i++) {
+            questions[i].addEventListener("click", function() {
+                selectQuestion(this);
+            });
+        }
+
+        //////////////////////
+        //   update_input   // ✓
+        //////////////////////
+    
+        // Sélectionnez toutes les balises avec la classe "editable"
+        const editableElements = document.querySelectorAll('[contenteditable="true"]');
+    
+        // Ajoutez un écouteur d'événements pour chaque balise
+        editableElements.forEach(element => {
+            // Stockez la valeur d'origine dans un attribut personnalisé
+            element.setAttribute('data-original-value', element.textContent);
+    
+            element.addEventListener('blur', () => {
+                const id = element.getAttribute('id');
+                const value = $.trim(element.textContent); // Récupérez la valeur modifiée
+                const field = element.getAttribute('name');
+
+                // Créez l'objet de données à envoyer dans la requête
+                const data = {
+                    action: "update_input",
+                    id: id,
+                    value: value,
+
+                    //model: modelName,
+                    field: field
+                };
+                console.log(data);
+                // Effectuez une requête AJAX avec jQuery
+                $.ajax({
+                  type: 'POST',
+                  url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                  data: data,
+                  success: function(response) {
+                      // Gérez la réponse du serveur en cas de succès
+                      console.log('Mise à jour réussie');
+                  },
+                  error: function(error) {
+                      // Gérez les erreurs de la requête AJAX
+                      console.error('Erreur lors de la mise à jour', error);
+    
+                      // Récupérez la valeur d'origine et rétablissez-la
+                      const originalValue = element.getAttribute('data-original-value');
+                      element.textContent = originalValue;
+                  }
+                });
+            });
+        });
+
+        ///////////////////////////
+        //   questionParameter  //
+        ///////////////////////////
+        /*
+        # Nombre de réponse minimum : 1     
+        # Nombre de réponse maximum : 2
+        # Choisir un type question
+        # Question est obligatoire          ✓
+        */
+
+
+        //récupérer les éléments qui contient "questionParameter" dans la classe
+        const questionParameter = document.querySelectorAll('.questionParameter');
+        questionParameter.forEach(element => {
+
+            // mettre des listener sur element, ce sont une liste déroulante et un checkbox
+            element.addEventListener('change', () => {
+                // récupérer l'id de la question sélectionnée, une question contient la class "selected"
+                var all_question = document.getElementsByClassName("question-container");
+                var selected_question = null;
+
+                Array.from(all_question).forEach(question => {
+                    if (question.classList.contains("selected")) {
+                        selected_question = question;
+                    }
+                });
+                console.log("selected_question")
+                console.log(selected_question); 
+
+                // récupérer la valeur de la liste déroulante et du checkbox
+                var options = selected_question.querySelectorAll('[name="type_question"]');
+                console.log("options")
+                console.log(options)
+                option_selected = null;
+                Array.from(options).forEach(option => {
+                    if (option.selected) {
+                        option_selected = option.textContent;
+                        console.log(option_selected);
+                    }
+                });
+
+                // récupérer la valeur de la checkbox
+                test = selected_question.querySelector('[name="isObligatory"]');
+                
+                if(test.checked){
+                    // checkbox is checked
+                    var is_required = true;
+                }else{
+                    // checkbox is not checked
+                    var is_required = false;
+                }
+
+                // Créez l'objet de données à envoyer dans la requête
+                const data = {
+                    action: "questionParameter",
+                    id: selected_question.getAttribute('id'),
+                    type_question: option_selected,
+                    is_required: is_required
+                };
+                // Effectuez une requête AJAX avec jQuery
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                    data: data,
+                    success: function(response) {
+                        // Gérez la réponse du serveur en cas de succès
+                        console.log('Mise à jour réussie');
+                        location.reload();
+                    },
+                    error: function(error) {
+                        // Gérez les erreurs de la requête AJAX
+                        console.error('Erreur lors de la mise à jour', error);
+                    }
+                });
+            });
+        });
+        
+        
+
+        //////////////////////
+        //   question_form  // 
+        //////////////////////
+        /*
+        # Ajouter question      ✓
+        # Suprimer Question     ✓
+        # dupliquer Question    ✓
+        # Lier des réponses a la question
+        # Changer l'ordre des questions    ✓
+        */
+        
+
+        const question_form = document.querySelectorAll('[name="menu"]');
+
+        question_form.forEach(element => {
+
+            element.addEventListener('click', () => {
+                var all_question = document.getElementsByClassName("question-container");
+                var selected_question = null;
+
+                Array.from(all_question).forEach(question => {
+                    if (question.classList.contains("selected")) {
+                        selected_question = question;
+                    }
+                });
+                
+                if (selected_question) {
+                    const btn = element.value;
+                    const id_Question = selected_question.getAttribute('id');
+
+                    console.log("id question :", id_Question);
+                    console.log("Le bouton cliqué est :", btn);
+
+                    const data = {
+                        action: "question_form",
+                        btn: btn,
+                        id_Question : id_Question,
+                        id : idForm
+                    };
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                        data: data,
+                        success: function(response) {
+                            // Gérez la réponse du serveur en cas de succès
+                            console.log('Mise à jour réussie');
+                            location.reload();
+                        },
+                        error: function(error) {
+                            // Gérez les erreurs de la requête AJAX
+                            console.error('Erreur lors de la mise à jour', error);
+                        }
+                    });
+                    
+                } else {
+                    console.log("Aucune question sélectionnée");
+                }
+
+            });
+        });
+
+        ////////////////////////
+        //   question_answer  //
+        ////////////////////////
+        /*
+        # Ajouter réponse
+        # Suprimer supprimer
+        # lier la réponse a des questions
+        */
+        const allAnswer = document.querySelectorAll('[name="answer"]');
+        allAnswer.forEach(element => {
+
+            // mettre des listener sur element, ce sont une liste déroulante et un checkbox
+            element.addEventListener('click', () => {
+                // récupérer l'id de la question sélectionnée, une question contient la class "selected"
+                var all_question = document.getElementsByClassName("question-container");
+                var selected_question = null;
+
+                Array.from(all_question).forEach(question => {
+                    if (question.classList.contains("selected")) {
+                        selected_question = question;
+                    }
+                });
+
+                console.log("click sur une réponse")
+                console.log(element.textContent);
+                btn = element.textContent;
+
+                
+                // Créez l'objet de données à envoyer dans la requête
+                const data = {
+                    action: "question_answer",
+                    btn : btn
+                    idQuestion: selected_question.getAttribute('id'),
+                };
+                //revoir la gestion des answer
+                /*
+                // Effectuez une requête AJAX avec jQuery
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                    data: data,
+                    success: function(response) {
+                        // Gérez la réponse du serveur en cas de succès
+                        console.log('Mise à jour réussie');
+                    },
+                    error: function(error) {
+                        // Gérez les erreurs de la requête AJAX
+                        console.error('Erreur lors de la mise à jour', error);
+                    }
+                });
+                */
+            });
+        });
+
+
+
+        ///////////////////
+        //   style_form  //
+        ///////////////////
+        /*
+        # mettre a jour le style css et sauvegarder les changement quelque part en base de donnée
+        # pas encore fais !
+        # stockage json ?? =
+        */
+
+        //const style_form = document.querySelectorAll('ok');
+
+
+        ///////////////////////
+        //   form_parametre  //
+        ///////////////////////
+        /*
+        ##############################################
+        #        fonctionalités mis en place        #
+        ##############################################
+  
+        # aller sur la preview
+  
+        ##############################################
+        #   fonctionalités pas encore mis en place   #
+        ##############################################
+  
+        # Changer date de MEP
+        # Publier Form
+        # Affichage sur un ou plusieurs pages
+        */
+
+        //const form_parametre = document.querySelectorAll('ok');
+
+
+    });
+    
 </script>
 {% endblock %}

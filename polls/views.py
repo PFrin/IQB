@@ -8,7 +8,6 @@ import uuid
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 
-# Create your views here.
 from django.http import Http404, HttpResponse
 from django.template import loader
 from polls.models import Customer
@@ -70,6 +69,8 @@ def details(request, loginCust):
         myCustomer = get_object_or_404(Customer, loginCust=loginCust)
         myOnlineForm = Form.objects.filter(Customer=myCustomer, isOnline=True)
         myFormUnderConstruction = Form.objects.filter(Customer=myCustomer, isOnline=False)
+        print("myOnlineForm : ", myOnlineForm)
+        print("myFormUnderConstruction : ", myFormUnderConstruction)
 
         context = {
             'myCustomer': myCustomer,
@@ -87,11 +88,189 @@ def details(request, loginCust):
 @login_required
 def QuestionView(request,loginCust,idForm):
 
-  #valeurs par défault
-  defaultType = Type.objects.get(typeQuestion='Choix unique')
+  #traitement des requetes 
   if request.method == "POST":
     action = request.POST.get("action")
-    if (action == "update"):
+    id_Form = request.POST.get('id')
+
+    if action == "update_input":
+      id = request.POST.get('id')
+      value = request.POST.get('value')
+      field = request.POST.get('field')
+
+      # Vérifier le champ spécifié et mettre à jour la valeur correspondante
+      if field == 'titleForm':
+        object_form = Form.objects.get(idForm=id)
+      elif field == 'Answer':
+        object_form = Answer.objects.get(idAnswer=id)
+      elif field == 'title':
+        object_form = Question.objects.get(idQuestion=id)
+      elif field == 'concludingText':
+        object_form = Form.objects.get(idForm=id)
+      elif field == 'introText':
+        object_form = Form.objects.get(idForm=id)
+
+      if object_form:
+        setattr(object_form, field, value)
+        object_form.save()
+    
+    if action == "questionParameter":
+      print("questionParameter")
+      id = request.POST.get('id') 
+      object_question = Question.objects.get(idQuestion=id)
+      type_question = request.POST.get('type_question')
+      is_required = request.POST.get('is_required')
+      if object_question.type == type_question:
+        print("réponse possible et obligatoire")
+        if object_question.isObligatory != is_required :
+          object_question.set_isObligatory()
+        else:
+          pass
+          #changer le nombre de réponses possible
+      else:
+        print("Changement du type de question en cours...")
+        print("Ancien type de question : {}".format(object_question.type))
+        print("Nouveau type de question : {}".format(type_question))
+        #changer le type de question, les autres parametres sont déjà gérer dans la fonction
+        print("_________________________")
+        object_question.swap_question_type(type_question)
+
+      object_question.save()
+
+      # Nombre de réponse minimum : 1
+      # Nombre de réponse maximum : 2
+      # Choisir un type question
+      # Question est obligatoire
+
+    if action == "question_answer":
+      btn = request.POST.get('btn')
+      id_Question = request.POST.get('idQuestion')
+      id_Answer = request.POST.get('idAnswer')
+      object_answer = Answer.objects.get(idAnswer=id_Answer)
+      object_Question = Question.objects.get(idQuestion=id_Question)
+      if btn == 'supprimer':
+        print("supprimer")
+        #vérifier si la réponse est lié a une question
+        object_answer.delete_answer()
+      elif btn == 'lier':
+        pass
+      elif btn == 'ajouter':
+        object_Question.add_answer()
+
+      # Ajouter réponse
+      # Suprimer supprimer
+      # lier la réponse a des questions
+      pass
+    if action == "question_form":
+      # Ajouter question
+      # Suprimer Question
+      # dupliquer Question
+      # Lier des réponses a la question
+      # Changer l'ordre des questions
+
+      btn = request.POST.get('btn')
+      id_Question = request.POST.get('id_Question')
+
+      object_Question = Question.objects.get(idQuestion=id_Question)
+      print("object_Question : ", object_Question)
+     
+      if btn == 'supprimer':
+        print("supprimer")
+        object_Question.delete_question()
+      elif btn == 'lier':
+        pass
+      elif btn == 'dupliquer':
+        object_Question.duplicate_question()
+      elif btn == 'ajouter':
+        object_Question.add_question()
+      elif btn == 'haut' or btn == 'bas':
+        object_Question.swap_order_with(btn)
+
+
+    if action == "form_page":
+      nbr = request.POST.get('nbr')
+      btn = request.POST.get('btn')
+      
+      object_form = Form.objects.get(idForm=id_Form)
+      object_Page = object_form.page_set.get(number=nbr)
+
+      if btn == 'addPage':
+        object_Page.ajouter_page()
+      elif btn == 'delPage':
+        object_Page.supprimer_page()
+
+    if action == "style_form":
+      # mettre a jour le style css et sauvegarder les changement quelque part en base de donnée
+      # pas encore fais !
+      # stockage json ?? =
+      pass
+    if action =="form_parametre":
+      pass
+      ##############################################
+      #        fonctionalités mis en place        #
+      ##############################################
+
+      # aller sur la preview
+
+      ##############################################
+      #   fonctionalités pas encore mis en place   #
+      ##############################################
+
+      # Changer date de MEP
+      # Publier Form
+      # Affichage sur un ou plusieurs pages
+    return JsonResponse({"success": True})
+
+
+
+      ##########################################
+      #   info requise pour afficher la page   #
+      ##########################################
+
+  else:
+    template = loader.get_template('polls/createQuestion.html')
+    myType = Type.objects.all()
+    form = CreateQuestion()
+    myForm = Form.objects.get(idForm=idForm)
+
+    info_form = []
+    myPages = Page.objects.filter(Form=idForm).order_by('number')
+    print(myPages)
+    form_data = {
+      'form': myForm,
+      'pages': []
+    }
+    for page in myPages:
+      myQuestions = Question.objects.filter(page=page).order_by('order')
+      page_data = {
+        'page': page,
+        'questions': []
+      }
+      for question in myQuestions:
+        myAnswers = Answer.objects.filter(Question=question)
+        question_data = {
+          'question': question,
+          'answers': myAnswers
+        }
+        page_data['questions'].append(question_data)
+      
+      form_data['pages'].append(page_data)
+
+    info_form.append(form_data)
+    customer = myForm.Customer
+    CurrentloginCust = customer.loginCust
+    context = {
+      'myType': myType,
+      'form': form,
+      'info_form': info_form,
+      'CurrentloginCust': CurrentloginCust,
+      'myForm':myForm,
+      'is_user_authenticated': request.user.is_authenticated,
+    }
+    return HttpResponse(template.render(context, request))
+
+'''       ANCIEN CODE DE QuestionView 
+    if action == "update":
       key_question = request.POST.get("key_question")
       key_value = request.POST.get("key_value")
       key_id   = request.POST.get("key_id")
@@ -99,16 +278,7 @@ def QuestionView(request,loginCust,idForm):
       key_page = request.POST.get("key_page")
       key_name = request.POST.get("key_name")
       
-      my_model_instance = None
-
-      ##vérification des champs
-      #vérif form
-      #mise a jour des champs :
-      if key_value == "false":
-        key_value = False
-      if key_value == "true":
-        key_value = True
-
+      
       if key_type == "form":
         my_model_instance = Form.objects.get(idForm=key_id)
         if (key_name == "titleForm"):
@@ -228,47 +398,7 @@ def QuestionView(request,loginCust,idForm):
       pass
 
     return JsonResponse({"success": True})
-  else:
-    template = loader.get_template('polls/createQuestion.html')
-    myType = Type.objects.all()
-    form = CreateQuestion()
-    myForm = Form.objects.get(idForm=idForm)
-
-    info_form = []
-    myPages = Page.objects.filter(Form=idForm)
-    print(myPages)
-    form_data = {
-      'form': myForm,
-      'pages': []
-    }
-    for page in myPages:
-      myQuestions = Question.objects.filter(page=page).order_by('order')
-      page_data = {
-        'page': page,
-        'questions': []
-      }
-      for question in myQuestions:
-        myAnswers = Answer.objects.filter(Question=question)
-        question_data = {
-          'question': question,
-          'answers': myAnswers
-        }
-        page_data['questions'].append(question_data)
-      
-      form_data['pages'].append(page_data)
-
-    info_form.append(form_data)
-    customer = myForm.Customer
-    CurrentloginCust = customer.loginCust
-    context = {
-      'myType': myType,
-      'form': form,
-      'info_form': info_form,
-      'CurrentloginCust': CurrentloginCust,
-      'myForm':myForm,
-      'is_user_authenticated': request.user.is_authenticated,
-    }
-    return HttpResponse(template.render(context, request))
+    '''
 
 
 
@@ -307,9 +437,9 @@ def formCreate(request):
 
 def home(request):
     if request.user.is_authenticated and isinstance(request.user, Customer):
-        return render(request, 'polls/details.html')
+      return render(request, 'polls/details.html')
     else:
-        return render(request, 'polls/login.html')
+      return render(request, 'polls/login.html')
 
 import logging
 
