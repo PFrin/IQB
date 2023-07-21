@@ -1,5 +1,6 @@
 from imaplib import _Authenticator
 from django import forms
+import json
 from django.shortcuts import redirect, render
 from django.contrib.auth import login, authenticate
 from django.http import JsonResponse
@@ -11,9 +12,9 @@ from django.shortcuts import render, redirect
 from django.http import Http404, HttpResponse
 from django.template import loader
 from polls.models import Customer
-from .models import User
-from django.shortcuts import render
 from .models import *
+from .models import Customer, Form, Question, Answer, Participant, ParticipantAnswer
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from polls.allForms import CustomerCreationForm, LoginForm, CreateForm, CreateQuestion
 from django.shortcuts import render, get_object_or_404
@@ -22,6 +23,8 @@ from django.template import loader
 from .models import Customer, Form
 from django.http import JsonResponse
 from django.core import serializers
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import UserCreationForm
@@ -47,30 +50,31 @@ def CreateForm(request,loginCust):
 
 
 #http://127.0.0.1:8000/details/cust1/
+@csrf_exempt
 @login_required
 def details(request, loginCust):
+    if not request.user.is_authenticated:
+      return redirect('login')
     if request.method == "POST":
-        action = request.POST.get("action")
-        if action == "newForm":
-            myCustomer = get_object_or_404(Customer, loginCust=loginCust)
-            
-            form = Form(titleForm='new Form', Customer_id=myCustomer.idCustomer)
-            form.save(form.idForm)
-            print("_____________________")
-            print(form.idForm)
-            serialized_form = serializers.serialize('json', [form], fields=('titleForm', 'Customer_id'))
-            response_data = {
-                'success': True,
-                'latestFormId': serialized_form
-            }
-            return JsonResponse(response_data)
+      action = request.POST.get("action")
+      if action == "newForm":
+        myCustomer = get_object_or_404(Customer, loginCust=loginCust)
+        
+        # Use the add_form method to create a new Form with default values
+        form = Form()
+        form.Customer = myCustomer
+        new_form = form.add_form()
+        
+        response_data = {
+            'success': True,
+            'latestFormId': new_form.idForm
+        }
+        return JsonResponse(response_data)
 
     try:
         myCustomer = get_object_or_404(Customer, loginCust=loginCust)
         myOnlineForm = Form.objects.filter(Customer=myCustomer, isOnline=True)
         myFormUnderConstruction = Form.objects.filter(Customer=myCustomer, isOnline=False)
-        print("myOnlineForm : ", myOnlineForm)
-        print("myFormUnderConstruction : ", myFormUnderConstruction)
 
         context = {
             'myCustomer': myCustomer,
@@ -78,10 +82,11 @@ def details(request, loginCust):
             'myFormUnderConstruction': myFormUnderConstruction,
             'is_user_authenticated': request.user.is_authenticated,
         }
-        print("is_user_authenticated : ", request.user.is_authenticated)
+
         return render(request, 'polls/details.html', context)
     except Customer.DoesNotExist:
         raise Http404("Customer does not exist")
+
 
 
 @csrf_exempt
@@ -116,11 +121,11 @@ def QuestionView(request,loginCust,idForm):
     
     if action == "questionParameter":
       print("questionParameter")
-      id = request.POST.get('id') 
+      id = request.POST.get("id") 
       object_question = Question.objects.get(idQuestion=id)
       type_question = request.POST.get('type_question')
       is_required = request.POST.get('is_required')
-      if object_question.type == type_question:
+      if type_question == object_question.type.__str__():
         print("réponse possible et obligatoire")
         if object_question.isObligatory != is_required :
           object_question.set_isObligatory()
@@ -143,18 +148,23 @@ def QuestionView(request,loginCust,idForm):
       # Question est obligatoire
 
     if action == "question_answer":
+      print("question_answer")
       btn = request.POST.get('btn')
+      print(btn)
       id_Question = request.POST.get('idQuestion')
       id_Answer = request.POST.get('idAnswer')
-      object_answer = Answer.objects.get(idAnswer=id_Answer)
       object_Question = Question.objects.get(idQuestion=id_Question)
-      if btn == 'supprimer':
-        print("supprimer")
-        #vérifier si la réponse est lié a une question
-        object_answer.delete_answer()
-      elif btn == 'lier':
-        pass
-      elif btn == 'ajouter':
+      if id_Answer is not None:
+        object_answer = Answer.objects.get(idAnswer=id_Answer)
+
+        if btn == 'Supprimer':
+          print("Supprimer")
+          #vérifier si la réponse est lié a une question
+          object_answer.delete_answer()
+        elif btn == 'Lier':
+          pass
+      elif btn == 'Ajouter':
+        print("ajouter")
         object_Question.add_answer()
 
       # Ajouter réponse
@@ -204,6 +214,12 @@ def QuestionView(request,loginCust,idForm):
       # pas encore fais !
       # stockage json ?? =
       pass
+    if action =="publier":
+      object_form = Form.objects.get(idForm=id_Form)
+      object_form.publish()
+      # mettre le form en ligne
+      # pas encore fais !
+
     if action =="form_parametre":
       pass
       ##############################################
@@ -474,21 +490,21 @@ def login_view(request):
 
 
 def register_view(request):
-    if request.method == 'POST':
-        form = CustomerCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-        else:
-            print("Échec de l'inscription")
+  if request.method == 'POST':
+    form = CustomerCreationForm(request.POST)
+    if form.is_valid():
+      form.save()
+      return redirect('login')
     else:
-        form = CustomerCreationForm()
-    return render(request, 'polls/register.html', {'form': form})
+      print("Échec de l'inscription")
+  else:
+    form = CustomerCreationForm()
+  return render(request, 'polls/register.html', {'form': form})
 
 
-def logout(request):
+def logout_view(request):
   logout(request)
-  pass
+  return redirect('login')
 
 #def answerFormView(request, formulaire_id,idUSer):
 def answerFormView(request):
@@ -517,6 +533,187 @@ def answerFormView(request):
     'myUser' : myUser,
     'session_data': session_data
   }
+  
+  return render(request, 'polls/answerForm.html', context)
+'''
+def PreView(request, loginCust, idForm):
+  myForm  = Form.objects.get(idForm=idForm)
+  myUser  = User.objects.get(loginCust=loginCust)
+  myPages = Page.objects.filter(Form=myForm).order_by('number')
 
+  context = {
+    'myForm' : myForm,
+    'myPages': myPages,
+    'myUser' : myUser,
+  }
+  return render(request, 'polls/answerForm.html', context)
+'''
+
+def preview_reponse(request, idForm):
+  print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Mode aperçu concepteur !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+  return reponse(request, None, idForm)
+
+def reponse(request, username, idForm):
+  preview_doc = None
+  #vérifier si le user existe dans la base de données
+  try:
+    myUser = Participant.objects.get(loginParticipant=username)
+  except Participant.DoesNotExist:
+    #créer un utilisateur anonyme !!!
+    myUser = Participant()
+    myUser.create_participant(username)
+  
+  myForm = Form.objects.get(idForm=idForm)
+  myPages = Page.objects.filter(Form=myForm).order_by('number')
+  #vérifier si le formulaire existe
+  if myForm:
+    #vérifier preview
+    if request.method == 'GET':
+      print("GET")
+      print(request.GET)
+      preview_param = request.GET.get('preview', None)
+      if preview_param == 'true':
+
+        preview_doc = True
+        print("Mode aperçu concepteur !")
+      else:
+        preview_doc = False
+        print("Mode normal.")
+      #vérifier si le formulaire est en ligne
+      if myForm.isOnline:
+        #vérfier si le user a déjà des réponses avec le formulaire en cours dans la bd
+        participant_Answer = ParticipantAnswer.objects.filter(Participant=myUser)
+        if participant_Answer: #vérifier si il y a des réponses dans la bd
+          return HttpResponse("L'utilisateur a déjà répondu")
+        #sinon continuer 
+      else:
+        return HttpResponse("Le formulaire n'est pas en ligne")
+    #vérifier si form_data est dans la session
+    if 'form_data' in request.session:
+      form_data = request.session['form_data']
+    else:
+      form_data = {
+        'forms': []
+      }
+
+      #vérifier si le formulaire courant est dans la session faire attention a la valeur de preview
+      if not myForm.idForm in form_data:
+
+        form = {
+          'id': str(myForm.idForm),
+          'name': myForm.titleForm,
+          'preview': preview_doc,
+          'pages': []
+        }
+        for page in myPages:
+          page_data = {
+            'id': str(page.idPage),
+            'name': str(page.number),
+            'questions': []
+        }
+
+        for question in Question.objects.filter(page=page):
+            question_data = {
+                'id': str(question.idQuestion),
+                'name': str(question.title),
+                'type': str(question.type),
+                'answer': []
+            }
+          
+            page_data['questions'].append(question_data)
+
+        form['pages'].append(page_data)
+
+      form_data['forms'].append(form)
+      
+
+      # Afficher le JSON
+      json_str = json.dumps(form_data, indent=4)
+      #print(json_str)
+      #enregistrer dans un fichier test.json
+      with open('test.json', 'w') as outfile:
+        json.dump(form_data, outfile)
+  else:
+    return HttpResponse("Le formulaire n'existe pas")
+  
+  if request.method == 'POST':
+    for key, value in request.POST.items(): 
+      #chercher la question dans le json et ajouter la réponse
+      for form in form_data['forms']:
+        for page in form['pages']:
+          for question in page['questions']:
+            if question['id'] == key:
+              question['answer'].append(value)
+              break
+  #enregistrer dans la session
+  request.session['form_data'] = form_data
+  with open('test.json', 'w') as outfile:
+    json.dump(form_data, outfile)
+
+
+  context = {
+    'myForm': myForm,
+    'myPages': myPages,
+    'preview': preview_doc,
+  }
 
   return render(request, 'polls/answerForm.html', context)
+  
+
+#def reponse(request, username, idForm):
+#vérifier si le user existe dans la base de données
+#sinon le créer et l'ajouter dans la base de données
+#vérifier si le formulaire existe
+
+#vérifier si on est en preview ou non (paramètre dans l'url)
+  #oui
+    #pass
+  #non
+    #vérifier si le form est en ligne ou non
+      #oui
+        #vérfier si le user a déjà des réponses avec le formulaire en cours dans la bd
+          #oui
+            #return error form already answered
+          #non
+            #pass
+      #non
+        #return error form not online
+
+#vérifier si les données du formulaire sont dans la session
+  #non
+    #récupérer les données du formulaire dans la base de données
+    #initialiser le jsons contenant les données du formulaire
+    #enregistrer jsons dans la session
+  #oui
+    #récupérer les données du formulaire dans la session
+    #vérifier si le user a déjà répondu au formulaire courant(ATTETION : vérifier la valeur de preview dans le json)
+      #oui
+        #valeur des réponses du user dans le json seront préremplies dans le formulaire
+      #non
+        #initialiser le jsons contenant les données du formulaire courant
+        #enregistrer jsons dans la session
+
+#if request.method == 'POST':
+  #parcourt les données du POST  ( for key, value in request.POST.items(): )
+    #chercher la question correspondante dans le json
+    #ajouter la réponse dans le json
+    #enregistrer le json dans la session
+
+#context
+#return render(request, 'polls/answerForm.html', context)
+
+
+#bouton Envoyer le Formulaire redirige vers une page de chargement
+#dans la page de chargement, on récupère les données du formulaire dans la session
+#on enregistre les données dans la base de données
+#on supprime les données du formulaire dans la session
+#on redirige vers une page de fin vec le texte de conclusion du formulaire
+
+
+
+
+
+
+
+
+

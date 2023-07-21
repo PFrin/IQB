@@ -1,3 +1,5 @@
+from datetime import timezone
+from datetime import date
 from .defaults import *
 import uuid
 from django.db import models
@@ -85,9 +87,35 @@ class Form(models.Model):
     isOnline         = models.BooleanField (default="False")
     Customer         = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
-    def publier(self):
+    def publish(self):
+        self.MEPDate = date.today()
         self.isOnline = True
         self.save()
+    
+    #fonction pour ajouter un formulaire
+    def add_form(self):
+
+        # Récupérer les paramètres de formulaire par défaut
+        form_defaults = DEFAULT_FORM_DEFAULTS
+        # Créer un nouveau Formulaire avec les paramètres par défaut
+        form = Form.objects.create(
+            titleForm=form_defaults.get('titleForm'),
+            introText=form_defaults.get('introText'),
+            concludingText=form_defaults.get('concludingText'),
+            Customer=self.Customer
+        )
+        print("Formulaire créé avec succès")
+        # Créer une première page avec la question par défaut
+        form.add_init_page()
+        return form
+    
+    def add_init_page(self):
+        # Créer une première page avec la question par défaut
+        page = Page.objects.create(number=1, Form=self)
+        print("page créé avec succès")
+        page.add_init_question()
+        return page
+
 
 
 class Page(models.Model):
@@ -122,12 +150,14 @@ class Page(models.Model):
         
         # Récupérer les paramètres de question par défaut
         question_defaults = DEFAULT_QUESTION_DEFAULTS.get(DEFAULT_QUESTION_TYPE)
+        title = question_defaults.get('title')
         is_obligatory = question_defaults.get('isObligatory')
         nbr_answer_min = question_defaults.get('nbrAnswerMin')
         nbr_answer_max = question_defaults.get('nbrAnswerMax')
-
+        print("question créé avec succès")
         # Créer la nouvelle question avec l'ordre spécifié
         question = Question.objects.create(
+            title=title,
             type=question_type,
             page=self,
             isObligatory=is_obligatory,
@@ -135,25 +165,32 @@ class Page(models.Model):
             nbrAnswerMax=nbr_answer_max,
             order=0
         )
-
+        print("question créé avec succès")
         # Ajouter des réponses par défaut à la nouvelle question
         response_defaults = DEFAULT_RESPONSE_DEFAULTS.get(DEFAULT_QUESTION_TYPE, {})
+        print("1")
         responses = response_defaults.get('responses', [])
+        print("2")
         for response in responses:
-            question.add_answer(response)
-
+            question.add_default_answer(response)
+        print("réponses créé avec succès")
         return question
 
 
     def supprimer_page(self):
-        page_number = self.number
-        self.delete()
+        page_number = self.Form.page_set.count()
+        #vérifier si c'est lapage du formulaire 
+        if page_number == 1:
+            raise ValueError("Impossible de supprimer la dernière question de la page.")
+        else :
+            # Supprimer la page
+            self.delete()
 
-        # Décaler les numéros de page des pages suivantes de -1
-        pages_to_update = self.Form.page_set.filter(number__gt=page_number)
-        for page in pages_to_update:
-            page.number -= 1
-            page.save()
+            # Décaler les numéros de page des pages suivantes de -1
+            pages_to_update = self.Form.page_set.filter(number__gt=page_number)
+            for page in pages_to_update:
+                page.number -= 1
+                page.save()
 
 
 class Question(models.Model):
@@ -179,6 +216,7 @@ class Question(models.Model):
         
         # Récupérer les paramètres de question par défaut
         question_defaults = DEFAULT_QUESTION_DEFAULTS.get(DEFAULT_QUESTION_TYPE)
+        title = question_defaults.get('title')
         is_obligatory = question_defaults.get('isObligatory')
         nbr_answer_min = question_defaults.get('nbrAnswerMin')
         nbr_answer_max = question_defaults.get('nbrAnswerMax')
@@ -197,6 +235,7 @@ class Question(models.Model):
         question = Question.objects.create(
             type=question_type,
             page=self.page,
+            title=title,
             isObligatory=is_obligatory,
             nbrAnswerMin=nbr_answer_min,
             nbrAnswerMax=nbr_answer_max,
@@ -210,21 +249,18 @@ class Question(models.Model):
             question.add_answer(response)
 
         return question
-    
-    def add_answer(self,text):
-        new_answer = Answer.objects.create(
-            type = self.type,
-            Question= self,
-            Answer = text
-        )
-        return new_answer
-    
+
     def add_answer(self):
         text = "Réponse " + str(self.answer_set.count() + 1)
-        self.add_answer(self, text)
+        self.add_default_answer(text)
     
-
-    
+    def add_default_answer(self, text):
+        new_answer = Answer.objects.create(
+            type=self.type,
+            Question=self,
+            Answer=text
+        )
+        return new_answer
 
     def delete_question(self):
         #vérifier si c'est la derniere question de la page 
@@ -241,18 +277,13 @@ class Question(models.Model):
             q.save()
 
     def swap_order_with(self, direction):
+        myQuestions = Question.objects.filter(page=self.page)
         if direction == 'haut':
             if self.order == 0:
                 print("La question est déjà en haut.")
-                return
             else:
-                # Obtenir la question précédente avec un ordre inférieur
-                try:
-                    other_question = self.page.question_set.get(order=self.order - 1)
-                except Question.DoesNotExist:
-                    print("La question précédente n'existe pas.")
-                    return
-
+                # Obtenir la question précédente avec un ordre inférieur dans myQuestions
+                other_question = myQuestions.get(order=self.order - 1)
                 other_question.order += 1
                 other_question.save()
 
@@ -266,13 +297,7 @@ class Question(models.Model):
                 print("La question est déjà en bas.")
                 return
             else:
-                # Obtenir la question suivante avec un ordre supérieur
-                try:
-                    other_question = self.page.question_set.get(order=self.order + 1)
-                except Question.DoesNotExist:
-                    print("La question suivante n'existe pas.")
-                    return
-
+                other_question = myQuestions.get(order=self.order + 1)
                 other_question.order -= 1
                 other_question.save()
 
@@ -284,28 +309,33 @@ class Question(models.Model):
             print("Direction invalide. Utilisez 'haut' ou 'bas'.")
 
 
-
-    
     def swap_question_type(self, question_type):
         print("Changement du type de question en cours...")
         print("Ancien type de question : {}".format(self.type))
         print("Nouveau type de question : {}".format(question_type))
         questionType = Type.objects.get(typeQuestion=question_type)
         # Vérifier si le type de question est déjà le même
-        if self.type.typeQuestion == questionType:
+        if self.type.typeQuestion == questionType.typeQuestion:
             print("Le type de question est déjà le même.")
             return
-
+        print("here")
+        print(self.type.typeQuestion)
+        print(questionType.typeQuestion)
         # Vérifier si l'ancien type ou nouveau est ouvert ou à échelle
-        old_type_is_open_likert = self.type in ['ouvert', 'échelle']
-        new_type_is_open_likert = questionType in ['ouvert', 'échelle']
+        old_type_is_open_likert = self.type.typeQuestion in ['question ouverte', 'Question à échelle']
+        new_type_is_open_likert = questionType.typeQuestion in ['question ouverte', 'Question à échelle']
+        print("swap")
+        print(old_type_is_open_likert)
+        print(new_type_is_open_likert)
+    
 
-        if old_type_is_open_likert or new_type_is_open_likert:
+        if self.type == 'question ouvert' or self.type =='Question à échelle' or question_type=='question ouvert' or question_type=='Question à échelle':
+            print("here")
             # Supprimer les réponses existantes
             self.answer_set.all().delete()
 
             # Initialiser les paramètres par défaut du nouveau type
-            question_defaults = DEFAULT_QUESTION_DEFAULTS.get(questionType)
+            question_defaults = DEFAULT_QUESTION_DEFAULTS.get(questionType.typeQuestion)
             is_obligatory = question_defaults.get('isObligatory')
             nbr_answer_min = question_defaults.get('nbrAnswerMin')
             nbr_answer_max = question_defaults.get('nbrAnswerMax')
@@ -334,6 +364,7 @@ class Question(models.Model):
         self.save()
 
     def delete_answer(self, answer_id):
+        print("Suppression de la réponse en ...")
         Answer.objects.filter(idAnswer=answer_id, Question=self).delete()
 
     def duplicate_question(self):
@@ -383,6 +414,7 @@ class Question(models.Model):
     def set_isObligatory(self):
         self.isObligatory = not self.isObligatory
         self.save(update_fields=['isObligatory'])
+        print("La question est maintenant",  self.isObligatory)
 
 class Answer(models.Model):
     idAnswer   = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
@@ -394,6 +426,7 @@ class Answer(models.Model):
         return str(self.idAnswer)
     
     def delete_answer(self):
+        print("Suppression de la réponse en cours...")
         self.delete()
 
 
@@ -407,9 +440,23 @@ class User(models.Model):
     def __str__(self):
         return self.loginUser
 
-class UserAnswer(models.Model):
-    idUserAnswer = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
-    user         = models.ForeignKey(User    , on_delete=models.CASCADE)
+class Participant(models.Model):
+    idParticipant       = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
+    loginParticipant    = models.CharField(max_length=100)
+    replayDate   = models.DateTimeField(auto_now_add=True) # date de la création de l'objet et donc de réponse au 1er formulaire
+
+    def __str__(self):
+        return self.loginParticipant
+    
+    #créer un Participant
+    def create_participant(self, loginParticipant):
+        Participant.objects.create(
+            loginParticipant=loginParticipant
+        )
+
+class ParticipantAnswer(models.Model):
+    idParticipantAnswer = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
+    Participant         = models.ForeignKey(Participant    , on_delete=models.CASCADE)
     question     = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer       = models.ForeignKey(Answer  , on_delete=models.CASCADE)
     text         = models.TextField(max_length=100)

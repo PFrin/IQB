@@ -1,0 +1,41 @@
+{
+    "forms": [
+        {
+            "id": "6b3a158a-a26d-4148-bfe0-814ed60b695e",
+            "name": "Nouveau Test",
+            "preview": true,
+            "pages": [
+                {
+                    "id": "2e6b56c1-5a96-4af8-89bd-b8648047c784",
+                    "name": "1",
+                    "questions": [
+                        {
+                            "id": "2c21a1c0-c451-4ff2-a2a1-f7bb8b60043c",
+                            "name": "Question 2",
+                            "type": "question ouverte",
+                            "answer": [
+                                "Malo"
+                            ]
+                        },
+                        {
+                            "id": "7780a8e9-f17d-453b-8735-25d02eead9db",
+                            "name": "Question 1",
+                            "type": "Choix unique",
+                            "answer": [
+                                "4ed6bee6-bc46-4ce1-a7cd-dcbe526e91dc"
+                            ]
+                        },
+                        {
+                            "id": "e7e19323-efae-4ccf-83e6-5aa900401136",
+                            "name": "Question 3",
+                            "type": "choix multiple",
+                            "answer": [
+                                "8c923aaa-fbe3-4295-bd27-63cde306e32b"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

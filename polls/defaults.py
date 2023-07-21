@@ -36,13 +36,11 @@ DEFAULT_RESPONSE_DEFAULTS = {
     },
     'Question à échelle': {
         'responses': ['Satisfait', 'Moyenement satisfait', 'Pas satisfait']
-    },
+    }, 
 }
-
 DEFAULT_MAX_ANSWERS =  "réponse"
 DEFAULT_MAX_ANSWERS = 1
 DEFAULT_MIN_ANSWERS = 1
-
 
 NUMBER_MAX_FORM     = 100
 NUMBER_MAX_QUESTION = 50
@@ -55,6 +53,12 @@ QUESTION_TYPES = [
     "question ouverte",
     "Question à échelle",
 ]
+
+DEFAULT_FORM_DEFAULTS = {
+    'titleForm': "Nouveau formulaire",
+    'introText': "Bienvenue sur notre formulaire.",
+    'concludingText': "Merci d'avoir rempli notre formulaire.",
+}
 
 #####################
 #   ERROR MESSAGE   #

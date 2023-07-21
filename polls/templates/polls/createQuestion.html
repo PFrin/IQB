@@ -1,6 +1,11 @@
 {% extends 'master.html' %}
 {% load static %}
 
+{% if myForm.isOnline %}
+    <h1>Formulaire en ligne</h1>
+    {% url 'IQB:details' myForm.idForm %}
+{% endif %}
+
 {% block title %}IODA Group IQB{% endblock %}
 
 {% block styles %}
@@ -97,16 +102,16 @@
                                                     <div id="{{ answer.idAnswer }}" class="reponse d-flex align-items-center">
                                                         <div class="col-10">
                                                             <div>
-                                                                <li  id="{{ answer.idAnswer }}" name="Answer" class="réponse" contenteditable="true" style="max-width: 100%; margin-left: 10px;">
+                                                                <li  id="{{ answer.idAnswer }}" name="Answer" class="reponse" contenteditable="true" style="max-width: 100%; margin-left: 10px;">
                                                                     {{ answer.Answer }}
                                                                 </li>
                                                             </div>
                                                         </div>
                                                         <div class="col-2 d-flex justify-content-end">
-                                                            <button type="button" name="answer" class="btn btn-primary" title="Lier à une question">
+                                                            <button type="button"  id="{{ answer.idAnswer }}" name="answer" class="btn btn-primary" title="Lier">
                                                                 <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
                                                             </button>
-                                                            <button type="button" name="answer" class="btn btn-danger" title="Supprimer">
+                                                            <button type="button" id="{{ answer.idAnswer }}" name="answer" class="btn btn-danger" title="Supprimer">
                                                                 <img src="{% static 'IQB/images/poubelle.png' %}" alt="Supprimer" width="24" height="24">
                                                             </button>
                                                         </div>
@@ -116,7 +121,7 @@
                                                 
                                                 
                                                     {% if question.question.type.typeQuestion != 'question ouverte' %}
-                                                    <button type="button" name="answer" class="btn btn-primary">Ajouter une réponse</button>
+                                                    <button type="button" name="answer" class="btn btn-primary" title="Ajouter">Ajouter une réponse</button>
                                                     {% else %}
                                                     <textarea disabled>réponse....</textarea>
                                                     {% endif %}
@@ -154,15 +159,17 @@
                         <!-- Menu interactif -->
                         <div class="col-lg-2 col-md-2 col-sm-12 d-flex justify-content-center">
                             <div class="menu-container d-flex flex-column" id="interactive-menu">
-                                <button type="submit" class="btn btn-primary" name="menu" value="publier" title="Publier">
-                                    <img src="{% static 'IQB/images/publier.png' %}" alt="publier" width="24" height="24">
-                                </button>
-                                <button type="button" class="btn btn-primary" name="menu" value="preview" title="preview">
+                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#validationPublish" title="validation publication">
+                                    <button type="submit" class="btn btn-primary" name="menu" value="publier" title="Publier">
+                                        <img src="{% static 'IQB/images/publier.png' %}" alt="publier" width="24" height="24">
+                                    </button>
+                                </a>
+                                <button type="button" class="btn btn-primary" name="menu" id="preview" value="preview" title="preview" style="margin-bottom: 100px;">
                                     <img src="{% static 'IQB/images/visible.png' %}" alt="preview" width="24" height="24">
                                 </button>
-                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#Parametres" style="margin-bottom: 100px;">
-                                    <button type="submit" class="btn btn-secondary" name="menu" value="parametre" title="Parametres">
-                                        <img src="{% static 'IQB/images/parametre.png' %}" alt="parametre" width="24" height="24">
+                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#Parametres" style="margin-bottom: 100px;display: none;">
+                                    <button type="submit" class="btn btn-secondary" name="menu" value="parametre" title="Parametres" style="display:  none;">
+                                        <img src="{% static 'IQB/images/parametre.png' %}" alt="parametre" width="24" height="24" style="display: none;">
                                     </button>
                                 </a>
                                 <button type="submit" class="btn btn-danger" name="menu" value="supprimer" title="supprimer">
@@ -266,6 +273,24 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                 <button type="button" class="btn btn-danger">enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal pour demander la validation de l'action -->
+<div class="modal fade" id="validationPublish" tabindex="-1" aria-labelledby="validationLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="validationLabel">Validation publication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Voulez-vous vraiment publier le formulaire ?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Non</button>
+                <button type="button" class="btn btn-primary" id="btnValiderPublication">Oui</button>
             </div>
         </div>
     </div>
@@ -418,7 +443,7 @@
                 console.log(data);
                 // Effectuez une requête AJAX avec jQuery
                 $.ajax({
-                  type: 'POST',
+                  type: 'POST', 
                   url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
                   data: data,
                   success: function(response) {
@@ -463,8 +488,6 @@
                         selected_question = question;
                     }
                 });
-                console.log("selected_question")
-                console.log(selected_question); 
 
                 // récupérer la valeur de la liste déroulante et du checkbox
                 var options = selected_question.querySelectorAll('[name="type_question"]');
@@ -482,7 +505,7 @@
                 test = selected_question.querySelector('[name="isObligatory"]');
                 
                 if(test.checked){
-                    // checkbox is checked
+                    // check box is checked
                     var is_required = true;
                 }else{
                     // checkbox is not checked
@@ -570,7 +593,6 @@
                             console.error('Erreur lors de la mise à jour', error);
                         }
                     });
-                    
                 } else {
                     console.log("Aucune question sélectionnée");
                 }
@@ -594,26 +616,54 @@
                 // récupérer l'id de la question sélectionnée, une question contient la class "selected"
                 var all_question = document.getElementsByClassName("question-container");
                 var selected_question = null;
+                var questionId = null;
 
                 Array.from(all_question).forEach(question => {
                     if (question.classList.contains("selected")) {
+                        console.log("question sélectionnée")
+                        console.log(question)
                         selected_question = question;
+                        questionId = selected_question.getAttribute('id');
                     }
                 });
 
+
+                // Sélectionner l'élément contenant la question
+                //const questionContainer = selected_question.getElementsByClassName("question-container");
+                // Récupérer l'ID de la question
+                //const questionId = questionContainer.getAttribute('id');
+                // Afficher l'ID de la question dans la console
+                console.log('ID de la question :', questionId);
+
                 console.log("click sur une réponse")
-                console.log(element.textContent);
-                btn = element.textContent;
+                console.log(element.getAttribute('title'));
+                btn = element.getAttribute('title');
+                let data;
+
+                if (btn == "Ajouter"){
+                    data = {
+                        action: "question_answer",
+                        btn : btn,
+                        idQuestion : questionId,
+                        id : idForm ,
+                    };
+                    console.log(data)
+                }
+                else{
+                    console.log(element)
+                    idAnswer = element.getAttribute('id');
+                    data = {
+                        action: "question_answer",
+                        btn : btn,
+                        idQuestion : questionId,
+                        id : idForm ,
+                        idAnswer : idAnswer
+                    };
+                    console.log(data)
+                }
+
 
                 
-                // Créez l'objet de données à envoyer dans la requête
-                const data = {
-                    action: "question_answer",
-                    btn : btn
-                    idQuestion: selected_question.getAttribute('id'),
-                };
-                //revoir la gestion des answer
-                /*
                 // Effectuez une requête AJAX avec jQuery
                 $.ajax({
                     type: 'POST',
@@ -628,7 +678,6 @@
                         console.error('Erreur lors de la mise à jour', error);
                     }
                 });
-                */
             });
         });
 
@@ -665,10 +714,41 @@
         # Affichage sur un ou plusieurs pages
         */
 
-        //const form_parametre = document.querySelectorAll('ok');
+        document.getElementById('preview').addEventListener('click',function () {
+            var redirectUrl = '/' + loginCust.idCustomer + '/form/' + idForm.toString() + '/?preview=true';
+            document.location.href = redirectUrl;
+        });
+        //publier le formulaire
+        document.getElementById('btnValiderPublication').addEventListener('click',function() {
+            data = {
+                action: "publier",
+                id : idForm
+            };
+            
 
+            $.ajax({
+                type: 'POST', 
+                url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                data: data,
+                success: function(response) {
+                    // Gérez la réponse du serveur en cas de succès
+                    console.log('Mise à jour réussie');
+                    var redirectUrl = '/' + loginCust.idCustomer + '/form/' + idForm.toString() + '/?preview=true';
+                    document.location.href = redirectUrl;
+                },
+                error: function(error) {
+                    // Gérez les erreurs de la requête AJAX
+                    console.error('Erreur lors de la mise à jour', error);
+  
+                    // Récupérez la valeur d'origine et rétablissez-la
+                    const originalValue = element.getAttribute('data-original-value');
+                    element.textContent = originalValue;
+                }
+            });
+        });
 
     });
+
     
 </script>
 {% endblock %}

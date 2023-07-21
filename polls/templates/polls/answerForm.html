@@ -1,6 +1,6 @@
 <!-- answerForm.html -->
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <title>Answer Form</title>
 </head>
@@ -33,7 +33,7 @@
                 {% for key, value in session_data.items %}
                   {% if answer.idQuestion in key and value == answer.idAnswer%}
                     checked
-                    style = color:red;
+                    style = "color:red";
                   {% else %}
                     id="marche pas"
                   {%endif%}
@@ -50,6 +50,11 @@
     </form>
     <p>* Indique une question obligatoire<p>
   {% endfor %}
-  <input type="submit" value="Envoyer le Formulaire">
+  {% if preview %}
+  <input type="submit" value="Envoyer le Formulaire" disabled>
+  {% else %}
+    <input type="submit" value="Envoyer le Formulaire">
+  {% endif %}
+  <hr>
 </body>
 </html>

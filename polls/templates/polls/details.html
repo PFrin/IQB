@@ -35,6 +35,15 @@
             var redirectUrl = '/' + myCustomer + '/form/createQuestion/' + formId.toString() + '/';
             document.location.href = redirectUrl;
         }
+        function repondre(myCustomer,formId){
+            var redirectUrl = '/' + myCustomer + '/form/' + formId.toString() + '/';
+            document.location.href = redirectUrl;
+        }
+        function preview(myCustomer,formId){
+            console.log(formId);
+            var redirectUrl = '/' + myCustomer + '/form/' + formId.toString() + '/?preview=true';
+            document.location.href = redirectUrl;
+        }
     </script>    
     <div class="col-lg-3 col-md-6 mb-4">
         {% for x in myOnlineForm%}
@@ -51,8 +60,11 @@
                 <p class="card-text"><strong>LastModifiedDate: </strong>{{ x.lastModifiedDate }}</p>
             </div>
             <div class="card-footer">
-                <button onclick="viewTest('{{ x.idForm }}');" class="btn btn-primary">
+                <button onclick="preview('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
                     <i class="fas fa-eye"></i> Voir le rendu
+                </button>
+                <button onclick="repondre('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> répondre au formulaire
                 </button>
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" checked disabled>
@@ -72,7 +84,6 @@
             </header>
             <div class="card-body">
                 <p class="card-text"><strong>CreationDate: </strong>{{ x.CreationDate }}</p>
-                <p class="card-text"><strong>MEPDate: </strong>{{ x.MEPDate }}</p>
                 <p class="card-text"><strong>LastModifiedDate: </strong>{{ x.lastModifiedDate }}</p>
             </div>
             <div class="card-footer">
@@ -82,7 +93,7 @@
                 <button onclick="editForm('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
                     <i class="fas fa-edit"></i> Modifier le formulaire
                 </button>
-                <button onclick="viewTest('{{ x.idForm }}');" class="btn btn-primary">
+                <button action="{% url 'reponse' x.idForm %}" class="btn btn-primary">
                     <i class="fas fa-eye"></i> Voir le rendu
                 </button>
                 <div class="form-check form-switch">

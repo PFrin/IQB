@@ -35,15 +35,17 @@ urlpatterns = [
     #path("polls/", include("polls.urls"t)),
     path("", views.login_view, name="home"),
     path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
     path('register/',views.register_view, name='register'),
     path("admin/", admin.site.urls),
     
     #test et debug
     
-    path('form/', views.answerFormView, name='answerFormView'),
+    #path('form/', views.answerFormView, name='answerFormView'),
     #path('<str:loginCust>/createQuestion/<str:idForm>/', views.QuestionView, name='QuestionView'),
     
-
+    path('<str:username>/form/<str:idForm>/', views.reponse, name='preview'),
+    path('form/<str:idForm>/', views.reponse, name='reponse'),
     #path("Customer/<str:login>", views.CreateForm, login='login'),
     
     #test et debug
@@ -54,7 +56,6 @@ urlpatterns = [
         path('redirection', views.redirection, name='redirection'),
         path('CreateForm/', views.CreateForm, name='createForm'),
         path('createQuestion/<str:idForm>/', views.QuestionView, name='QuestionView'),
-        #path('answerForm/', views.AnswerForm, name='AnswerForm'),
     ])),
 
 ]
