@@ -10,11 +10,12 @@
   {% for page in myPages %}
     <h2>Page {{ page.number }}</h2>
 
-    <form method="post" action="">
+    <form method="post" action="" >
       {% csrf_token %}
     
       {% for question in page.question_set.all %}
-        <h3>{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
+        <section id="{{ question.idQuestion }}">
+        <h3 class="{% if question.isObligatory %}obligatory{% endif %}">{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
     
         {% if question.type.typeQuestion == 'question ouverte' %}
           <textarea name="{{ question.idQuestion }}"></textarea>
@@ -44,6 +45,7 @@
             <label>{{ answer.Answer }}</label><br>
           {% endfor %}
         {% endif %}
+        </section>
       {% endfor %}
     
       <input type="submit" value="Submit">
@@ -58,3 +60,175 @@
   <hr>
 </body>
 </html>
+
+<!-- SCRIPT qui vérifie si le bouton submit d'une page rempli la condition de réponses aux questions -->
+<script>
+  // Sélectionnez tous les formulaires sur la page
+const forms = document.querySelectorAll('form');
+
+// Parcourez chaque formulaire
+forms.forEach((form, index) => {
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    // Récupérez toutes les questions de ce formulaire
+    //const requiredQuestions = form.querySelectorAll('h3');
+    // garder les questions obligatoires seulement 
+    const requiredQuestions = form.querySelectorAll('h3.obligatory');
+    //afficher le nombre de questions obligatoires
+    console.log("nombre de questions obligatoires : ");
+    console.log(requiredQuestions.length);
+
+
+    // Vérifiez si toutes les questions obligatoires ont été répondues
+    let allQuestionsAnswered = true;
+
+    requiredQuestions.forEach((question, questionIndex) => {
+      // Vérifiez le type de question (textarea, input radio, input checkbox, etc.)
+      const questionType = question.nextElementSibling.nodeName.toLowerCase();
+
+      if (questionType === 'textarea') {
+        // Pour les zones de texte, vérifiez si elles ne sont pas vides
+        if (question.nextElementSibling.value.trim() === '') {
+          allQuestionsAnswered = false;
+        }
+      } else if (questionType === 'input') {
+        const inputType = question.nextElementSibling.getAttribute('type');
+        
+        if (inputType === 'radio') {
+          // Pour les boutons radio, vérifiez s'il y a une option sélectionnée
+          const radioButtons = form.querySelectorAll(`[name="${question.nextElementSibling.getAttribute('name')}"]:checked`);
+          if (radioButtons.length === 0) {
+            allQuestionsAnswered = false;
+          }
+        } else if (inputType === 'checkbox') {
+          // Pour les cases à cocher, vérifiez si au moins une est cochée
+          const checkboxes = form.querySelectorAll(`[name="${question.nextElementSibling.getAttribute('name')}"]:checked`);
+          if (checkboxes.length === 0) {
+            allQuestionsAnswered = false;
+          }
+        }
+      }
+    });
+    console.log("good ? ");
+    console.log(allQuestionsAnswered);  
+
+    // Si toutes les questions obligatoires ont été répondues, soumettez le formulaire
+    if (allQuestionsAnswered) {
+      form.submit();
+    } else {
+      // Sinon, affichez un message d'erreur ou effectuez une autre action appropriée
+      alert(`Veuillez répondre à toutes les questions obligatoires du formulaire ${index + 1}.`);
+    }
+  });
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SCRIPT qui vérifie si les conditions de réponses aux questions sont remplies au chargerment de la page //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var myDependencies = {{ myDependencies|safe }};
+
+// Chargement initial lorsque la page est entièrement chargée
+document.addEventListener("DOMContentLoaded", onPageLoad);
+
+function onPageLoad() {
+  console.log("<----------onPageLoad---------->");
+
+  // Récupération des dépendances depuis le modèle de données
+  var questionReponses = {};
+
+  // Création du dictionnaire question-réponses
+  myDependencies.forEach(function(dependency) {
+    var parts = dependency.split("->");
+    var answer = parts[0].trim();
+    var question = parts[1].trim();
+
+    if (!(question in questionReponses)) {
+      questionReponses[question] = [];
+    }
+
+    questionReponses[question].push(answer);
+  });
+
+  // Vérification des conditions de visibilité initiales
+  for (var question in questionReponses) {
+    var responses = questionReponses[question];
+    var dependentQuestionElement = document.getElementById(question);
+
+    if (shouldShowQuestion(responses)) {
+      dependentQuestionElement.style.display = 'block';
+      console.log("Ne pas cacher la question : " + question);
+    } else {
+      dependentQuestionElement.style.display = 'none';
+      console.log("Cacher la question : " + question);
+      // Supprimer les réponses (à implémenter si nécessaire)
+    }
+  }
+}
+
+function shouldShowQuestion(responses) {
+  // Vérification si toutes les réponses associées à une question sont cochées
+  for (var i = 0; i < responses.length; i++) {
+    var answer = document.getElementById(responses[i]);
+    if (!answer || !answer.checked) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Réécriture de la partie de gestion des événements
+(function() {
+  var reponsesQuestions = {};
+
+  myDependencies.forEach(function(dependency) {
+    var parts = dependency.split("->");
+    var answerValue = parts[0].trim(); // Utilisez la valeur au lieu de l'ID
+    var question = parts[1].trim();
+
+    if (!(answerValue in reponsesQuestions)) {
+      reponsesQuestions[answerValue] = [];
+    }
+
+    reponsesQuestions[answerValue].push(question);
+
+    // Ajout d'un écouteur d'événements pour chaque réponse en utilisant la valeur
+    var answerElements = document.querySelectorAll('input[type="checkbox"][value="' + answerValue + '"]');
+    
+    // Vérifiez si au moins un élément a été trouvé avant d'ajouter l'écouteur
+    if (answerElements.length > 0) {
+      answerElements.forEach(function(answerElement) {
+        answerElement.addEventListener("change", function() {
+          updateQuestionsVisibility(answerValue);
+        });
+      });
+    }
+  });
+
+  // Fonction pour mettre à jour la visibilité des questions dépendantes
+  function updateQuestionsVisibility(selectedAnswer) {
+    for (var answer in reponsesQuestions) {
+      var questions = reponsesQuestions[answer];
+      for (var i = 0; i < questions.length; i++) {
+        var question = questions[i];
+        var dependentQuestionElement = document.getElementById(question);
+        var isChecked = document.querySelectorAll('input[type="checkbox"][value="' + answer + '"]:checked').length > 0;
+
+        if (isChecked) {
+          dependentQuestionElement.style.display = 'block';
+          console.log("Ne pas cacher la question : " + question);
+        } else {
+          dependentQuestionElement.style.display = 'none';
+          console.log("Cacher la question : " + question);
+          // Supprimer les réponses (à implémenter si nécessaire)
+        }
+      }
+    }
+  }
+
+  // Appel initial de la fonction updateQuestionsVisibility pour afficher/masquer les questions
+  for (var answer in reponsesQuestions) {
+    updateQuestionsVisibility(answer);
+  }
+})();
+</script>
