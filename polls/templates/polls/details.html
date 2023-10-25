@@ -5,7 +5,6 @@
 {% block title %}IODA Group IQB{% endblock %}
 {% block content %}
 
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function newForm(myCustomer) {
@@ -34,7 +33,7 @@
             console.log(formId);
             var redirectUrl = '/' + myCustomer + '/form/createQuestion/' + formId.toString() + '/';
             document.location.href = redirectUrl;
-        }
+        } 
         function repondre(myCustomer,formId){
             var redirectUrl = '/' + myCustomer + '/form/' + formId.toString() + '/';
             document.location.href = redirectUrl;
@@ -44,11 +43,14 @@
             var redirectUrl = '/' + myCustomer + '/form/' + formId.toString() + '/?preview=true';
             document.location.href = redirectUrl;
         }
+        function removeForm(myCustomer,formId) {
+            console.log(formId);
+            var redirectUrl = '/' + myCustomer + formId.toString() + '/';
+            document.location.href = redirectUrl;
+        } 
     </script>    
     <div class="col-lg-3 col-md-6 mb-4">
-        {% for x in myOnlineForm%}
         <h1>Mes Formulaires en ligne :</h1>
-        {% endfor %}
         {% for x in myOnlineForm %}
         <div class="card mb-4">
             <header>
@@ -58,6 +60,7 @@
                 <p class="card-text"><strong>CreationDate: </strong>{{ x.CreationDate }}</p>
                 <p class="card-text"><strong>MEPDate: </strong>{{ x.MEPDate }}</p>
                 <p class="card-text"><strong>LastModifiedDate: </strong>{{ x.lastModifiedDate }}</p>
+                <p class="card-text"><strong>Auteur : </strong>{{ x.Customer.loginCust }}</p>
             </div>
             <div class="card-footer">
                 <button onclick="preview('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
@@ -85,10 +88,11 @@
             <div class="card-body">
                 <p class="card-text"><strong>CreationDate: </strong>{{ x.CreationDate }}</p>
                 <p class="card-text"><strong>LastModifiedDate: </strong>{{ x.lastModifiedDate }}</p>
+                <p class="card-text"><strong>Auteur : </strong>{{ x.Customer.loginCust }}</p>
             </div>
             <div class="card-footer">
                 <button onclick="removeForm('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
-                    <i class="fas fa-edit"></i> surpimer le formulaire
+                    <i class="fas fa-edit"></i> surprimer le formulaire
                 </button>
                 <button onclick="editForm('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
                     <i class="fas fa-edit"></i> Modifier le formulaire
@@ -99,7 +103,9 @@
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
                     <label class="form-check-label" for="flexSwitchCheckDefault">Is Online</label>
+                    <label class="" for="flexSwitchCheckDefault">Is Online</label>
                 </div>
+                
             </div>
         </div>
         {% endfor %}
