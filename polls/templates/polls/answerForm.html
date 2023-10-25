@@ -12,40 +12,40 @@
 
     <form method="post" action="" >
       {% csrf_token %}
-    
-      {% for question in page.question_set.all %}
-        <section id="{{ question.idQuestion }}">
-        <h3 class="{% if question.isObligatory %}obligatory{% endif %}">{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
-    
-        {% if question.type.typeQuestion == 'question ouverte' %}
-          <textarea name="{{ question.idQuestion }}"></textarea>
-        {% else %}
-          {% for answer in question.answer_set.all %}
-            {% if question.type.typeQuestion == 'choix multiple' %}
-              <input type="checkbox" name="{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
-                {% for key, value in session_data.items %}
-                  {% if answer.idQuestion in key and value == answer.idAnswer%}
-                    checked
-                  {% endif %}
-                {% endfor %}     
-              >
-            {% else %}
-              <input type="radio" name="{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
-                {% for key, value in session_data.items %}
-                  {% if answer.idQuestion in key and value == answer.idAnswer%}
-                    checked
-                    style = "color:red";
-                  {% else %}
-                    id="marche pas"
-                  {%endif%}
+      {% for question in all_questions %}
+        {% if question.page == page %}
+          <section id="{{ question.idQuestion }}">
+          <h3 class="{% if question.isObligatory %}obligatory{% endif %}">{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
+      
+          {% if question.type.typeQuestion == 'question ouverte' %}
+            <textarea name="{{ question.idQuestion }}"></textarea>
+          {% else %}
+              {% for answer in question.answer_set.all %}
+              <label>
+                {% if question.type.typeQuestion == 'choix multiple' %}
+                  <input type="checkbox" class="{{ question.idQuestion }}" name="{{ question.idQuestion }}" value="{{ question.answer.idAnswer }}"
+                  {% for key, value in session_data.items %}
+                    {% if answer.idQuestion in key and value == answer.idAnswer %}
+                      checked
+                    {% endif %}
+                  {% endfor %}
                   >
-                {% endfor %}   
-  
-            {% endif %}
-            <label>{{ answer.Answer }}</label><br>
-          {% endfor %}
+                {% else %}
+                  <input type="radio" class="{{ question.idQuestion }}" name="{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
+                  {% for key, value in session_data.items %}
+                    {% if answer.idQuestion in key and value == answer.idAnswer %}
+                      checked
+                      style="color: red";
+                    {% endif %}
+                  {% endfor %}
+                  >
+                {% endif %}
+                {{ answer.Answer }}
+              </label><br>
+            {% endfor %}
+          {% endif %}
+          </section>
         {% endif %}
-        </section>
       {% endfor %}
     
       <input type="submit" value="Submit">
@@ -55,7 +55,7 @@
   {% if preview %}
   <input type="submit" value="Envoyer le Formulaire" disabled>
   {% else %}
-    <input type="submit" value="Envoyer le Formulaire">
+    <input type="submit" value="Envoyer le Formulaire" onclick='theEnd();'>
   {% endif %}
   <hr>
 </body>
@@ -97,13 +97,13 @@ forms.forEach((form, index) => {
         
         if (inputType === 'radio') {
           // Pour les boutons radio, vérifiez s'il y a une option sélectionnée
-          const radioButtons = form.querySelectorAll(`[name="${question.nextElementSibling.getAttribute('name')}"]:checked`);
+          const radioButtons = form.querySelectorAll(`[class="${question.nextElementSibling.getAttribute('class')}"]:checked`);
           if (radioButtons.length === 0) {
             allQuestionsAnswered = false;
           }
         } else if (inputType === 'checkbox') {
           // Pour les cases à cocher, vérifiez si au moins une est cochée
-          const checkboxes = form.querySelectorAll(`[name="${question.nextElementSibling.getAttribute('name')}"]:checked`);
+          const checkboxes = form.querySelectorAll(`[class="${question.nextElementSibling.getAttribute('class')}"]:checked`);
           if (checkboxes.length === 0) {
             allQuestionsAnswered = false;
           }
@@ -127,6 +127,7 @@ forms.forEach((form, index) => {
 // SCRIPT qui vérifie si les conditions de réponses aux questions sont remplies au chargerment de la page //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var myDependencies = {{ myDependencies|safe }};
+var questionReponses = {};
 
 // Chargement initial lorsque la page est entièrement chargée
 document.addEventListener("DOMContentLoaded", onPageLoad);
@@ -135,7 +136,7 @@ function onPageLoad() {
   console.log("<----------onPageLoad---------->");
 
   // Récupération des dépendances depuis le modèle de données
-  var questionReponses = {};
+  questionReponses = {};
 
   // Création du dictionnaire question-réponses
   myDependencies.forEach(function(dependency) {
@@ -180,11 +181,13 @@ function shouldShowQuestion(responses) {
 // Réécriture de la partie de gestion des événements
 (function() {
   var reponsesQuestions = {};
+  console.log("<----------reponsesQuestions---------->");
+  console.log(myDependencies);
 
   myDependencies.forEach(function(dependency) {
     var parts = dependency.split("->");
     var answerValue = parts[0].trim(); // Utilisez la valeur au lieu de l'ID
-    var question = parts[1].trim();
+    var question = parts[1].trim(); // Utilisez l'ID de la question
 
     if (!(answerValue in reponsesQuestions)) {
       reponsesQuestions[answerValue] = [];
@@ -194,12 +197,25 @@ function shouldShowQuestion(responses) {
 
     // Ajout d'un écouteur d'événements pour chaque réponse en utilisant la valeur
     var answerElements = document.querySelectorAll('input[type="checkbox"][value="' + answerValue + '"]');
+    if (answerElements.length == 0) { //si bouton radio
+      answerElements = document.querySelectorAll('input[type="radio"][value="' + answerValue + '"]');
+    }
+    console.log(answerElements);
     
     // Vérifiez si au moins un élément a été trouvé avant d'ajouter l'écouteur
     if (answerElements.length > 0) {
+      console.log("<----------answerElements---------->");
       answerElements.forEach(function(answerElement) {
         answerElement.addEventListener("change", function() {
-          updateQuestionsVisibility(answerValue);
+          /*consoleif answerElement.checked {
+            console.log("checked");
+          }
+          else {
+            console.log("not checked");
+          }
+          */
+          console.log("<----------answer.addEventListener---------->");
+          updateQuestionsVisibility(answerElement);
         });
       });
     }
@@ -213,6 +229,11 @@ function shouldShowQuestion(responses) {
         var question = questions[i];
         var dependentQuestionElement = document.getElementById(question);
         var isChecked = document.querySelectorAll('input[type="checkbox"][value="' + answer + '"]:checked').length > 0;
+        if (!isChecked) { //si bouton radio
+          isChecked = document.querySelectorAll('input[type="radio"][value="' + answer + '"]:checked').length > 0;
+        }
+        console.log("isChecked : ");
+        console.log(isChecked);
 
         if (isChecked) {
           dependentQuestionElement.style.display = 'block';
@@ -220,6 +241,7 @@ function shouldShowQuestion(responses) {
         } else {
           dependentQuestionElement.style.display = 'none';
           console.log("Cacher la question : " + question);
+          console.log(isChecked)
           // Supprimer les réponses (à implémenter si nécessaire)
         }
       }
@@ -230,5 +252,40 @@ function shouldShowQuestion(responses) {
   for (var answer in reponsesQuestions) {
     updateQuestionsVisibility(answer);
   }
+
 })();
+
+function theEnd() {
+  alert("Merci d'avoir répondu au formulaire");
+
+  try {
+    // Envoyer une requête AJAX pour enregistrer les données dans la base de données
+    $.ajax({
+      type: 'POST',
+      url: '{% url "answerFormToDB" %}', // Remplacez par le nom de votre URL Django
+      data: {},  // Vous n'avez pas besoin de transmettre les données ici, car vous les récupérerez directement dans la vue Django
+      success: function(response) {
+        if (response.success) {
+          // Gérez la réponse du serveur en cas de succès
+          console.log('Mise à jour réussie');
+          // Redirigez vers la page de conclusion du formulaire
+          // window.location.href = '/votre-page-de-conclusion/';
+        } else {
+          // Gérez les erreurs du serveur
+          console.error("Échec de l'envoi du formulaire", response.error);
+        }
+      },
+      error: function(error) {
+        // Gérez les erreurs de la requête AJAX
+        console.error("Échec de l'envoi du formulaire", error);
+      }
+    });
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+
 </script>
+
+
