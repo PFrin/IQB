@@ -117,7 +117,6 @@ class Form(models.Model):
         return page
 
 
-
 class Page(models.Model):
     idPage = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     number = models.IntegerField()
@@ -207,6 +206,7 @@ class Question(models.Model):
         return self.title
 
     def add_question(self):
+        print("Ajout d'une question en cours...")
         # Vérifier si le nombre maximal de questions est atteint
         if self.page.question_set.count() >= NUMBER_MAX_QUESTION:
             raise ValueError("Le nombre maximal de questions pour ce formulaire a été atteint.")
@@ -245,8 +245,9 @@ class Question(models.Model):
         # Ajouter des réponses par défaut à la nouvelle question
         response_defaults = DEFAULT_RESPONSE_DEFAULTS.get(DEFAULT_QUESTION_TYPE, {})
         responses = response_defaults.get('responses', [])
+        print (responses)
         for response in responses:
-            question.add_answer(response)
+            question.add_default_answer(response)
 
         return question
 
@@ -329,7 +330,7 @@ class Question(models.Model):
         print(new_type_is_open_likert)
     
 
-        if self.type == 'question ouvert' or self.type =='Question à échelle' or question_type=='question ouvert' or question_type=='Question à échelle':
+        if self.type == 'question ouverte' or self.type =='Question à échelle' and question_type=='question ouverte' or question_type=='Question à échelle':
             print("here")
             # Supprimer les réponses existantes
             self.answer_set.all().delete()
@@ -446,7 +447,7 @@ class Participant(models.Model):
     replayDate   = models.DateTimeField(auto_now_add=True) # date de la création de l'objet et donc de réponse au 1er formulaire
 
     def __str__(self):
-        return self.loginParticipant
+        return self.idParticipant
     
     #créer un Participant
     def create_participant(self, loginParticipant):
@@ -457,34 +458,48 @@ class Participant(models.Model):
 class ParticipantAnswer(models.Model):
     idParticipantAnswer = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
     Participant         = models.ForeignKey(Participant    , on_delete=models.CASCADE)
+    Form                = models.ForeignKey(Form           , on_delete=models.CASCADE)
     question     = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer       = models.ForeignKey(Answer  , on_delete=models.CASCADE)
     text         = models.TextField(max_length=100)
 
     def __str__(self):
-        return self.text
+        return self.Participant.__str__()
+    
+    def create_participantAnswer(self, Participant, Form, question, answer, text):
+        ParticipantAnswer.objects.create(
+            Participant=Participant,
+            Form=Form,
+            question=question,
+            answer=answer,
+            text=text
+        )
 
 class QuestionDependency(models.Model):
-    answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
-    dependent_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='dependency')
+    answer = models.ForeignKey('Answer', on_delete=models.CASCADE)
+    dependent_question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name='dependency')
 
     def __str__(self):
-        return f"{self.answer} -> {self.dependent_question}"
+        return f"{self.answer} -> {self.dependent_question.idQuestion}"
 
+    @classmethod
     def get_dependent_questions(cls, answer):
         """
         Renvoie la liste des questions dépendantes de la réponse donnée.
         """
-        return [dependency.dependent_question for dependency in cls.objects.filter(answer=answer)]
+        return cls.objects.filter(answer=answer).values_list('dependent_question', flat=True)
 
+    @classmethod
     def get_dependent_answers(cls, question):
         """
         Renvoie la liste des réponses dépendantes de la question donnée.
         """
-        return [dependency.answer for dependency in cls.objects.filter(dependent_question=question)]
+        return cls.objects.filter(dependent_question=question).values_list('answer', flat=True)
 
+    @classmethod
     def add_dependency(cls, answer, dependent_question):
         cls.objects.create(answer=answer, dependent_question=dependent_question)
 
+    @classmethod
     def remove_dependency(cls, answer, dependent_question):
         cls.objects.filter(answer=answer, dependent_question=dependent_question).delete()
