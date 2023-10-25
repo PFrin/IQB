@@ -183,7 +183,7 @@ function shouldShowQuestion(responses) {
   var reponsesQuestions = {};
   console.log("<----------reponsesQuestions---------->");
   console.log(myDependencies);
-
+  var otherElements
   myDependencies.forEach(function(dependency) {
     var parts = dependency.split("->");
     var answerValue = parts[0].trim(); // Utilisez la valeur au lieu de l'ID
@@ -199,23 +199,16 @@ function shouldShowQuestion(responses) {
     var answerElements = document.querySelectorAll('input[type="checkbox"][value="' + answerValue + '"]');
     if (answerElements.length == 0) { //si bouton radio
       answerElements = document.querySelectorAll('input[type="radio"][value="' + answerValue + '"]');
+      otherElements = document.querySelectorAll('input[type="radio"]');
     }
-    console.log(answerElements);
+    console.log(otherElements);
     
     // Vérifiez si au moins un élément a été trouvé avant d'ajouter l'écouteur
-    if (answerElements.length > 0) {
-      console.log("<----------answerElements---------->");
-      answerElements.forEach(function(answerElement) {
-        answerElement.addEventListener("change", function() {
-          /*consoleif answerElement.checked {
-            console.log("checked");
-          }
-          else {
-            console.log("not checked");
-          }
-          */
-          console.log("<----------answer.addEventListener---------->");
-          updateQuestionsVisibility(answerElement);
+    if (otherElements.length > 0) {
+      otherElements.forEach(function(otherElements) {
+        otherElements.addEventListener("change", function() {
+          console.log("<----------otherElements.addEventListener---------->");
+          updateQuestionsVisibility(otherElements);
         });
       });
     }
