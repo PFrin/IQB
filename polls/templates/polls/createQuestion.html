@@ -40,6 +40,19 @@
 
 
 {% block content %}
+    <script>
+        function preview(myCustomer,formId){
+            console.log("preview");
+            console.log("Customer : " + myCustomer);
+            //afficher l'utilisateur connecté
+            console.log
+            console.log("formId : " + formId);
+            //var redirectUrl = '/' + myCustomer + '/form/' + formId.toString() + '/?preview=true';
+            var redirectUrl = '/' + myCustomer + '/form/' + formId + '/?preview=true';
+            console.log(redirectUrl);
+            document.location.href = redirectUrl;
+        }
+    </script>   
     <div class="container-fluid">
         <div class="row">
             <!-- Panneau latéral de navigation -->
@@ -108,8 +121,8 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-2 d-flex justify-content-end">
-                                                            <button type="button"  id="{{ answer.idAnswer }}" name="answer" class="btn btn-primary" title="Lier">
-                                                                <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
+                                                            <button type="button"  id="{{ answer.idAnswer }}" name="answer" class="btn btn-primary" title="LierReponse">
+                                                                <img src="{% static 'IQB/images/lier.png' %}" alt="LierReponse" width="24" height="24">
                                                             </button>
                                                             <button type="button" id="{{ answer.idAnswer }}" name="answer" class="btn btn-danger" title="Supprimer">
                                                                 <img src="{% static 'IQB/images/poubelle.png' %}" alt="Supprimer" width="24" height="24">
@@ -164,7 +177,7 @@
                                         <img src="{% static 'IQB/images/publier.png' %}" alt="publier" width="24" height="24">
                                     </button>
                                 </a>
-                                <button type="button" class="btn btn-primary" name="menu" id="preview" value="preview" title="preview" style="margin-bottom: 100px;">
+                                <button onclick="preview('{{ CurrentloginCust }}','{{ myForm.idForm }}');" type="button" class="btn btn-primary" name="menu" id="preview" value="preview" title="preview" style="margin-bottom: 100px;">
                                     <img src="{% static 'IQB/images/visible.png' %}" alt="preview" width="24" height="24">
                                 </button>
                                 <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#Parametres" style="margin-bottom: 100px;display: none;">
@@ -175,11 +188,9 @@
                                 <button type="submit" class="btn btn-danger" name="menu" value="supprimer" title="supprimer">
                                     <img src="{% static 'IQB/images/poubelle.png' %}" alt="Supprimer" width="24" height="24">
                                 </button>
-                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#lienQuestion" title="lien de la question">
-                                    <button type="submit" class="btn btn-primary" name="menu" value="lier">
-                                        <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
-                                    </button>
-                                </a>
+                                <button class="btn btn-primary" name="menu" value="lier">
+                                    <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
+                                </button>
                                 <button type="submit" class="btn btn-primary" name="menu" value="haut" title="Déplacer vers le haut">
                                     <img src="{% static 'IQB/images/flecheHaut.png' %}" alt="flèche vers le haut" width="24" height="24">
                                 </button>
@@ -199,20 +210,64 @@
             </div>
         </div>
     </div>
-<!-- Modal pour les liens d'une questions: conditionspour qu'elle s'affiche -->
+    <script>
+        function affichagedynamique(parametre) {
+            console.log("La fonction affichage dynamique a été appelée.");
+            console.log("parametre : " + parametre); 
+
+            //récupéré l'élémeent avec id="lienQuestion" et le mettre dans une variable
+            var modal = document.getElementById("lienQuestion");
+            //parcourir les questions de la variable et les mettre dans une liste
+            var all_question = modal.querySelectorAll('.question-item');
+            console.log(all_question);
+            //créer un tableau vide
+            var elementsToHide = [];
+            var elementsSelected = parametre;
+            var indexElementsSelected = null;
+            //parcourir la liste des question et afficher les id des questions et leur ordre
+            Array.from(all_question).forEach(question => {
+                question.style.color = " black"; //remetre les checkbox en focntion de la BD
+                var idElement = question.getAttribute('data-question-id');
+                console.log(idElement);
+                console.log(idElement == elementsSelected);
+                if (question.getAttribute('data-question-id') == elementsSelected) { //question sélectionnée
+                    console.log("question sélectionnée");
+                    console.log(question);
+                    elementsToHide.push(question);
+                    //récupérer la place de la question sélectionnée dans la liste
+                    indexElementsSelected = Array.from(all_question).indexOf(question);
+                }
+                else if (indexElementsSelected != null ) { //question suivante
+                    console.log("question suivante");
+                    console.log(question);
+                    elementsToHide.push(question);
+                }
+            }); 
+            //parcourir le tableau elementsToHide et mettre les questions dans la fenetre modal en rouge
+            //parcourir le tableau elementsToHide et mettre les questions dans la fenetre modal en rouge
+            Array.from(elementsToHide).forEach(element => {
+                element.style.color = "grey";
+                var all_checkbox = element.querySelectorAll('input[type="checkbox"]');
+                console.log(all_checkbox);
+                Array.from(all_checkbox).forEach(checkbox => {
+                    checkbox.disabled = true;
+                });
+            });
+        }
+    </script>
+<!-- Modal pour les liens d'une questions: conditions pour qu'elle s'affiche -->
 <div class="modal fade" id="lienQuestion" tabindex="-1" aria-labelledby="lienQuestionLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="lienQuestionLabel">Profil</h5>
+                <h5 class="modal-title" id="lienQuestionLabel">lien de la question </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Contenu du formulaire de profil -->
                 {% for form in info_form %}
                     {% for page in form.pages %}
                         {% for question in page.questions %}
-                            <li class="nav-item">
+                            <li class="nav-item question-item" data-question-id="{{ question.question.idQuestion }}">
                                 {% if question.question.type.typeQuestion == 'question ouverte' %}
                                     <del>{{ question.question.title }}</del>
                                 {% else %}
@@ -220,7 +275,7 @@
                                     <ul class="response-indent">
                                         {% for answer in question.answers %}
                                             <li>
-                                                <input type="checkbox" value="true">
+                                                <input type="checkbox" value="true" idAnswer={{answer.idAnswer}}>
                                                 <label>{{ answer.Answer }}</label>
                                             </li>
                                         {% endfor %}
@@ -233,17 +288,69 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-danger">enregistrer</button>
+                <button type="button" onclick='lien("lienQuestion");' class="btn btn-success">enregistrer</button>
+                <!--onclick='form_page({{ page.page.number }},"delPage")';-->
             </div>
         </div>
     </div>
 </div>
+<script> // A MODIFIER §§§§§§§§§§§§!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    function affichagedynamiqueLien(parametre,currentAnwser) {
+        console.log("________________________");
+        console.log("La fonction affichage dynamique a été appelée.");
+        console.log("parametre : " + parametre); 
+        console.log("answer : " + currentAnwser);
+
+        //récupéré l'élémeent avec id="lienQuestion" et le mettre dans une variable
+        var modal = document.getElementById("lienReponse");
+        //parcourir les questions de la variable et les mettre dans une liste
+        var all_question = modal.querySelectorAll('.question-item');
+        console.log(all_question);
+        //créer un tableau vide
+        var elementsToHide = [];
+        var elementsSelected = parametre;//question sélectionnée
+        var indexElementsSelected = null; // réponse sélectionnée
+        var idElement = null;
+        //parcourir la liste des question et afficher les id des questions et leur ordre
+        Array.from(all_question).forEach(question => {
+            question.style.color = " black"; //remetre les checkbox en focntion de la BD
+            idElement = question.getAttribute('data-question-id');
+            console.log(idElement);
+            console.log(idElement == elementsSelected);
+
+            if (idElement == elementsSelected) { //question sélectionnée
+                console.log("question sélectionnée");
+                console.log(question);
+                elementsToHide.push(question);
+                //récupérer la place de la question sélectionnée dans la liste
+                indexElementsSelected = Array.from(all_question).indexOf(question);
+                console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                console.log('indexElementsSelected : ' + indexElementsSelected);
+            }           
+            else if (indexElementsSelected == null ) { //question suivante
+                console.log("question suivante");
+                console.log(question);
+                elementsToHide.push(question);
+            }
+
+        }); 
+        //parcourir le tableau elementsToHide et mettre les questions dans la fenetre modal en rouge
+        Array.from(elementsToHide).forEach(element => {
+            element.style.color = "grey";
+            var all_checkbox = element.querySelectorAll('input[type="checkbox"]');
+            console.log(all_checkbox);
+            Array.from(all_checkbox).forEach(checkbox => {
+                checkbox.disabled = true;
+            });
+        });
+    }
+</script>
 <!-- Modal pour les liens d'une réponse: question associée -->
 <div class="modal fade" id="lienReponse" tabindex="-1" aria-labelledby="lienReponseLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="lienReponseLabel">Profil</h5>
+                <h5 class="modal-title" id="lienReponseLabel">Lier aux Questions</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -251,20 +358,9 @@
                 {% for form in info_form %}
                     {% for page in form.pages %}
                         {% for question in page.questions %}
-                            <li class="nav-item">
-                                {% if question.question.type.typeQuestion == 'question ouverte' %}
-                                    <del>{{ question.question.title }}</del>
-                                {% else %}
-                                    {{ question.question.title }}
-                                    <ul class="response-indent">
-                                        {% for answer in question.answers %}
-                                            <li>
-                                                <input type="checkbox" value="true">
-                                                <label>{{ answer.Answer }}</label>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
+                            <li class="nav-item question-item" data-question-id="{{ question.question.idQuestion }}">
+                                <input type="checkbox" value="true">
+                                {{ question.question.title }}
                             </li>
                         {% endfor %}
                     {% endfor %}
@@ -272,7 +368,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-danger">enregistrer</button>
+                <button type="button" class="btn btn-success">enregistrer</button>
             </div>
         </div>
     </div>
@@ -519,7 +615,7 @@
                     type_question: option_selected,
                     is_required: is_required
                 };
-                // Effectuez une requête AJAX avec jQuery
+
                 $.ajax({
                     type: 'POST',
                     url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
@@ -532,6 +628,7 @@
                     error: function(error) {
                         // Gérez les erreurs de la requête AJAX
                         console.error('Erreur lors de la mise à jour', error);
+                        location.reload();
                     }
                 });
             });
@@ -554,51 +651,59 @@
         const question_form = document.querySelectorAll('[name="menu"]');
 
         question_form.forEach(element => {
-
             element.addEventListener('click', () => {
                 var all_question = document.getElementsByClassName("question-container");
                 var selected_question = null;
-
+                var id_Question = null; // Déplacer la déclaration ici
+        
                 Array.from(all_question).forEach(question => {
                     if (question.classList.contains("selected")) {
                         selected_question = question;
+                        id_Question = question.getAttribute('id'); // Assigner la valeur ici
                     }
                 });
-                
+                console.log("selected_question ::::::::::::::::")
                 if (selected_question) {
+                    console.log("question sélectionnéeéééééé")
                     const btn = element.value;
-                    const id_Question = selected_question.getAttribute('id');
-
+        
                     console.log("id question :", id_Question);
                     console.log("Le bouton cliqué est :", btn);
-
-                    const data = {
-                        action: "question_form",
-                        btn: btn,
-                        id_Question : id_Question,
-                        id : idForm
-                    };
-
-                    $.ajax({
-                        type: 'POST',
-                        url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
-                        data: data,
-                        success: function(response) {
-                            // Gérez la réponse du serveur en cas de succès
-                            console.log('Mise à jour réussie');
-                            location.reload();
-                        },
-                        error: function(error) {
-                            // Gérez les erreurs de la requête AJAX
-                            console.error('Erreur lors de la mise à jour', error);
-                        }
-                    });
-                } else {
-                    console.log("Aucune question sélectionnée");
+        
+                    if (btn == "lier") {
+                        // ouvrir le modal pour lier les réponses
+                        var parametre = id_Question;
+                        // Ouvrir le modal en utilisant la méthode 'show' et passer le paramètre en utilisant la méthode 'data'
+                        $('#lienQuestion').data('parametre', parametre).modal('show');
+                        affichagedynamique(parametre);
+                    } else {
+                        console.log("question sélectionnéeééééééààààà")
+                        const data = {
+                            action: "question_form",
+                            btn: element.value,
+                            id_Question: id_Question,
+                            id: idForm
+                        };
+        
+                        $.ajax({
+                            type: 'POST',
+                            url: '{% url "QuestionView" loginCust=' + loginCust + ' idForm=' + idForm + ' %}', // l'URL vue Django
+                            data: data,
+                            success: function (response) {
+                                // Gérez la réponse du serveur en cas de succès
+                                console.log('Mise à jour réussie');
+                                location.reload();
+                            },
+                            error: function (error) {
+                                // Gérez les erreurs de la requête AJAX
+                                console.error('Erreur lors de la mise à jour', error);
+                            }
+                        });
+                    }
                 }
-
             });
         });
+        
 
         ////////////////////////
         //   question_answer  //
@@ -613,6 +718,7 @@
 
             // mettre des listener sur element, ce sont une liste déroulante et un checkbox
             element.addEventListener('click', () => {
+                currentAnwser = element.getAttribute('id');
                 // récupérer l'id de la question sélectionnée, une question contient la class "selected"
                 var all_question = document.getElementsByClassName("question-container");
                 var selected_question = null;
@@ -634,9 +740,6 @@
                 //const questionId = questionContainer.getAttribute('id');
                 // Afficher l'ID de la question dans la console
                 console.log('ID de la question :', questionId);
-
-                console.log("click sur une réponse")
-                console.log(element.getAttribute('title'));
                 btn = element.getAttribute('title');
                 let data;
 
@@ -647,10 +750,8 @@
                         idQuestion : questionId,
                         id : idForm ,
                     };
-                    console.log(data)
                 }
                 else{
-                    console.log(element)
                     idAnswer = element.getAttribute('id');
                     data = {
                         action: "question_answer",
@@ -659,25 +760,33 @@
                         id : idForm ,
                         idAnswer : idAnswer
                     };
-                    console.log(data)
                 }
 
-
+                if (btn == "LierReponse"){
+                    // ouvrir le modal pour lier les réponses
+                    var parametre = selected_question.getAttribute('id');
+                    //var parametre = currentAnwser;
+                    // Ouvrir le modal en utilisant la méthode 'show' et passer le paramètre en utilisant la méthode 'data'
+                    $('#lienReponse').data('parametre', parametre).modal('show');
+                    affichagedynamiqueLien(parametre,currentAnwser);
+                }else{
+                    // Effectuez une requête AJAX avec jQuery
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                        data: data,
+                        success: function(response) {
+                            // Gérez la réponse du serveur en cas de succès
+                            console.log('Mise à jour réussie');
+                        },
+                        error: function(error) {
+                            // Gérez les erreurs de la requête AJAX
+                            console.error('Erreur lors de la mise à jour', error);
+                        }
+                    });
+                }
                 
-                // Effectuez une requête AJAX avec jQuery
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
-                    data: data,
-                    success: function(response) {
-                        // Gérez la réponse du serveur en cas de succès
-                        console.log('Mise à jour réussie');
-                    },
-                    error: function(error) {
-                        // Gérez les erreurs de la requête AJAX
-                        console.error('Erreur lors de la mise à jour', error);
-                    }
-                });
+
             });
         });
 
@@ -714,17 +823,12 @@
         # Affichage sur un ou plusieurs pages
         */
 
-        document.getElementById('preview').addEventListener('click',function () {
-            var redirectUrl = '/' + loginCust.idCustomer + '/form/' + idForm.toString() + '/?preview=true';
-            document.location.href = redirectUrl;
-        });
         //publier le formulaire
         document.getElementById('btnValiderPublication').addEventListener('click',function() {
             data = {
                 action: "publier",
                 id : idForm
             };
-            
 
             $.ajax({
                 type: 'POST', 
@@ -746,9 +850,104 @@
                 }
             });
         });
-
     });
 
+
+
+    ///////////////////////
+    //       Modal       //
+    ///////////////////////
     
+    //fonction qui va servir a enregistrer les réponses des checkbox dans la base de donnée de la fenetre modal "lienQuestion"
+    function lien(modal){
+
+        console.log("#############################################debug")
+        var fModal = document.getElementById(modal);
+        var all_question = fModal.querySelectorAll('.question-item');
+        console.log(all_question);
+            
+    // Initialiser un objet vide pour stocker les données JSON
+    var jsonData = {};
+
+    if (modal === "lienQuestion") {
+        // Ajouter les éléments dans un dictionnaire où il y a l'id de la question et si c'est coché ou non
+        var questionsData = [];
+
+        var QuestionSelected = document.querySelector('.selected');
+        var idQuestionSelected = QuestionSelected.getAttribute('id');
+
+        Array.from(all_question).forEach(question => {
+            var idElement = question.getAttribute('data-question-id');
+            var all_answer = question.querySelectorAll('[type="checkbox"]');
+            var listeAnswer = [];
+
+            Array.from(all_answer).forEach(answer => {
+                var idAnswer = answer.getAttribute('idAnswer');
+                var checked = answer.checked;
+                listeAnswer.push({ idAnswer, checked });
+            });
+
+            questionsData.push({ idElement, listeAnswer });
+        });
+
+            // Ajouter les données de questions au JSON
+            jsonData = { modal, questionsData };
+        } else if (modal === "lienReponse") {
+            // Ajouter les éléments dans un dictionnaire où il y a l'id de la question et si c'est coché ou non
+            var questionsData = [];
+
+            Array.from(all_question).forEach(question => {
+                var idElement = question.getAttribute('data-question-id');
+                var checked = question.querySelector('[type="checkbox"]').checked;
+                questionsData.push({ idElement, checked });
+            });
+
+            // Ajouter les données de questions au JSON
+            jsonData = { modal, questionsData };
+        } else {
+            console.log("erreur");
+        }
+
+        // Convertir l'objet JSON en chaîne JSON
+        var jsonString = JSON.stringify(jsonData);
+
+        // Afficher la chaîne JSON
+        console.log(jsonString);
+
+
+        const data = 
+        {
+            action: "lien",
+            Modal: modal,
+            question: idQuestionSelected,
+            info : jsonString
+        };
+        console.log(data);
+        $.ajax({
+            type: 'POST', 
+            url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+            data: data,
+            success: function(response) {
+                // Gérez la réponse du serveur en cas de succès
+                console.log('Mise à jour réussie');
+            },
+            error: function(error) {
+                // Gérez les erreurs de la requête AJAX
+                console.error('Erreur lors de la mise à jour', error);
+            }
+        });
+    }
+
 </script>
 {% endblock %}
+
+
+
+
+<!--
+                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#lienQuestion">
+                                    <div class="btn btn-primary" name="menu" value="lier">
+                                        <img src="{% static 'IQB/images/lier.png' %}" alt="Lier" width="24" height="24">
+                                    </div>
+                                </a>
+-->
