@@ -73,8 +73,8 @@ def details(request, loginCust):
 
     try:
         myCustomer = get_object_or_404(Customer, loginCust=loginCust)
-        myOnlineForm = Form.objects.filter(Customer=myCustomer, isOnline=True)
-        myFormUnderConstruction = Form.objects.filter(Customer=myCustomer, isOnline=False)
+        myOnlineForm = Form.objects.filter(isOnline=True)
+        myFormUnderConstruction = Form.objects.filter(isOnline=False)
 
         context = {
             'myCustomer': myCustomer,
@@ -181,20 +181,25 @@ def QuestionView(request,loginCust,idForm):
       btn = request.POST.get('btn')
       id_Question = request.POST.get('id_Question')
 
-      object_Question = Question.objects.get(idQuestion=id_Question)
-      print("object_Question : ", object_Question)
-     
-      if btn == 'supprimer':
-        print("supprimer")
-        object_Question.delete_question()
-      elif btn == 'lier':
-        pass
-      elif btn == 'dupliquer':
-        object_Question.duplicate_question()
-      elif btn == 'ajouter':
-        object_Question.add_question()
-      elif btn == 'haut' or btn == 'bas':
-        object_Question.swap_order_with(btn)
+      
+      if id_Question!= '':
+        object_Question = Question.objects.get(idQuestion=id_Question)
+        print("object_Question : ", object_Question)
+      
+        if btn == 'supprimer':
+          print("supprimer")
+          object_Question.delete_question()
+        elif btn == 'lier':
+          pass
+        elif btn == 'dupliquer':
+          object_Question.duplicate_question()
+        elif btn == 'ajouter':
+          object_Question.add_question()
+        elif btn == 'haut' or btn == 'bas':
+          object_Question.swap_order_with(btn)
+      else:
+        #erreur pas de question sélectionné
+        print("erreur pas de question sélectionné")
 
 
     if action == "form_page":
@@ -235,10 +240,58 @@ def QuestionView(request,loginCust,idForm):
       # Changer date de MEP
       # Publier Form
       # Affichage sur un ou plusieurs pages
+    
+    if action == "lien":
+      modal = request.POST.get("Modal")
+      idDepedentQuestion = request.POST.get("question")
+      answer = request.POST.get("answer")
+      info = request.POST.get("info")
+      print("modal : ", modal) 
+      print("question : ", idDepedentQuestion)
+      print("answer : ", answer)
+      print("info : ", info)
+      print("post : ", request.POST)
+      if modal == "lienQuestion":
+        # Charger le JSON en tant qu'objet Python
+        data = json.loads(info)
+
+        # Accéder aux données
+        modal = data["modal"]
+        questions_data = data["questionsData"]
+        CurrentQuestion = Question.objects.get(idQuestion=idDepedentQuestion)
+        #récupérer les lien de la cureent question
+        dependencies = QuestionDependency.objects.filter(dependent_question=CurrentQuestion)
+        print("dependencies : ", dependencies)
+
+        # Parcourir les données
+        for question in questions_data:
+            id_element = question["idElement"]
+            liste_answer = question["listeAnswer"]
+            #afficher l'id des answer et si elles sont checked ou non
+            for CurAnswer in liste_answer:
+              print(f"ID de l'answer : {CurAnswer['idAnswer']}")
+              print(f"Checked : {CurAnswer['checked']}")
+              idCurrentAnswer=CurAnswer['idAnswer']
+              CurrentAnswer = Answer.objects.get(idAnswer=idCurrentAnswer)
+              #si la question current a un lien avec l'answer courant et que l'answer n'est pas checked alors supprimer le lien
+              if ( idCurrentAnswer in dependencies ):
+                if (CurAnswer['checked'] == False):
+                  QuestionDependency.remove_dependency(CurrentAnswer, CurrentQuestion)
+              else:
+                if (CurAnswer['checked'] == True):
+                  QuestionDependency.add_dependency(CurrentAnswer, CurrentQuestion)
+
+            print(f"ID de l'élément : {id_element}")
+            print(f"Liste de réponses : {liste_answer}")
+            print("\n")
+
+
+      elif modal == "lienReponse":
+        print("lienReponse")
+        pass
+      
     return JsonResponse({"success": True})
-
-
-
+    
       ##########################################
       #   info requise pour afficher la page   #
       ##########################################
@@ -391,7 +444,7 @@ def QuestionView(request,loginCust,idForm):
       QuestionCourant = Question.objects.get(idQuestion=question_id)
       NewAnswer = Answer.objects.create(
         type     = QuestionCourant.type,
-        Question = QuestionCourant,
+        Question = QuestionCourant,CurrentForm
         Answer   = "nouvelle réponse ",
       )
       NewAnswer.save()
@@ -554,111 +607,257 @@ def preview_reponse(request, idForm):
   return reponse(request, None, idForm)
 
 def reponse(request, username, idForm):
-  preview_doc = None
-  #vérifier si le user existe dans la base de données
-  try:
-    myUser = Participant.objects.get(loginParticipant=username)
-  except Participant.DoesNotExist:
-    #créer un utilisateur anonyme !!!
-    myUser = Participant()
-    myUser.create_participant(username)
-  
-  myForm = Form.objects.get(idForm=idForm)
-  myPages = Page.objects.filter(Form=myForm).order_by('number')
-  #vérifier si le formulaire existe
-  if myForm:
-    #vérifier preview
-    if request.method == 'GET':
-      print("GET")
-      print(request.GET)
-      preview_param = request.GET.get('preview', None)
-      if preview_param == 'true':
+  #clear la session
+  #request.session.flush()
+  print("------------------------")
+  print("|        debug         |")
+  print("------------------------")
 
-        preview_doc = True
-        print("Mode aperçu concepteur !")
-      else:
-        preview_doc = False
-        print("Mode normal.")
+  preview_doc = None
+  #gestion des erreurs 
+
+  try:
+    myForm = Form.objects.get(idForm=idForm)
+  except Form.DoesNotExist:
+    return HttpResponse("Le formulaire n'existe pas")
+  
+  try:
+    myParticipant = Participant.objects.get(loginParticipant=username)
+  except Participant.DoesNotExist:    #créer un utilisateur anonyme !!!
+    myParticipant = Participant()
+    myParticipant = myParticipant.create_participant(username)
+    myParticipant.save()
+    #idMyParticipant = myParticipant.idParticipant
+    #ajouter dans la session
+
+  request.session['myParticipant'] = username
+  myPages = Page.objects.filter(Form=myForm).order_by('number')
+  my_dependencies = list(QuestionDependency.objects.filter(dependent_question__page__Form=myForm))
+  print("my_dependencies : ", my_dependencies)
+  my_dependencies_serialized = json.dumps([str(dep) for dep in my_dependencies])
+  print(my_dependencies_serialized)
+  #vérifier si le formulaire existe
+
+  #vérifier preview
+  if request.method == 'GET':
+    print("GET")
+  elif request.method == 'POST':
+    print("POST")
+    preview_param = request.GET.get('preview', False)
+    if preview_param == 'true':
+      preview_doc = True
+      print("Mode aperçu concepteur !")
+    else:
+      preview_doc = False
+      print("Mode normal.")
       #vérifier si le formulaire est en ligne
       if myForm.isOnline:
+        print("Formulaire en ligne")
         #vérfier si le user a déjà des réponses avec le formulaire en cours dans la bd
-        participant_Answer = ParticipantAnswer.objects.filter(Participant=myUser)
+        participant_Answer = ParticipantAnswer.objects.filter(Participant=myParticipant)
         if participant_Answer: #vérifier si il y a des réponses dans la bd
           return HttpResponse("L'utilisateur a déjà répondu")
-        #sinon continuer 
+      #sinon continuer 
+      #vérifier si le formulaire est en ligne
       else:
-        return HttpResponse("Le formulaire n'est pas en ligne")
-    #vérifier si form_data est dans la session
-    if 'form_data' in request.session:
+        print("Formulaire hors ligne")
+      
+   
+    def addcurrentFormToSession(form_data):
+      print("Fct addcurrentFormToSession")
+      newForm = {
+        'id': str(myForm.idForm),
+        'name': myForm.titleForm,
+        'preview': preview_doc,
+        'isanswered': False,
+        'pages': []
+      }
+    
+      for page in myPages:
+        page_data = {
+          'id': str(page.idPage),
+          'name': str(page.number),
+          'isanswered': False,
+          'questions': []
+        }
+        questionPage = Question.objects.filter(page=page)
+        questionPageOrder = questionPage.order_by('order')
+        for question in questionPageOrder:
+          question_data = {
+            'id': str(question.idQuestion),
+            'name': str(question.title),
+            'type': str(question.type),
+            'answer': []
+          }
+
+          #afficher le nom de chaque question et son ordre
+          print(f"Question : {question.title}")
+          print(f"Ordre : {question.order}")
+
+        
+          page_data['questions'].append(question_data)
+
+      newForm['pages'].append(page_data)
+
+      form_data['forms'].append(newForm)
+      #maj de la session 
+      request.session['form_data'] = form_data
+
+      print("form_data : ")
+      print(form_data)  
+      print("--------------------")
+
+        # indentation auto:  Alt + Shift + F
+        #enregistrer dans un fichier test.json
+      with open('test.json', 'w') as outfile:
+        json.dump(form_data, outfile)
+      #enregistrer dans la session
+      request.session['form_data'] = form_data
+
+
+    print("--------------------")
+    print("|      actions     |")
+    print("--------------------")
+    print("session :")
+    print(request.session.items())
+
+    try:
       form_data = request.session['form_data']
-    else:
+    except KeyError: #si form_data n'est pas dans la session
       form_data = {
         'forms': []
       }
 
-      #vérifier si le formulaire courant est dans la session faire attention a la valeur de preview
-      if not myForm.idForm in form_data:
+    print(len(form_data['forms']))
+    if len(form_data['forms']) > 0:
+      for form in form_data['forms']:
+        if form['id'] == str(myForm.idForm):
+          print("Formulaire trouvé dans la session")
+          break
+        else :
+          addcurrentFormToSession(form_data)
+          #ajouter le formulaire dans la session
+    else : 
+      addcurrentFormToSession(form_data)
+      #ajouter le formulaire dans la session
 
-        form = {
-          'id': str(myForm.idForm),
-          'name': myForm.titleForm,
-          'preview': preview_doc,
-          'pages': []
-        }
-        for page in myPages:
-          page_data = {
-            'id': str(page.idPage),
-            'name': str(page.number),
-            'questions': []
-        }
+    form_data = request.session['form_data']
 
-        for question in Question.objects.filter(page=page):
-            question_data = {
-                'id': str(question.idQuestion),
-                'name': str(question.title),
-                'type': str(question.type),
-                'answer': []
-            }
-          
-            page_data['questions'].append(question_data)
 
-        form['pages'].append(page_data)
 
-      form_data['forms'].append(form)
-      
 
-      # Afficher le JSON
-      json_str = json.dumps(form_data, indent=4)
-      #print(json_str)
-      #enregistrer dans un fichier test.json
-      with open('test.json', 'w') as outfile:
-        json.dump(form_data, outfile)
-  else:
-    return HttpResponse("Le formulaire n'existe pas")
+
+    #récupéré la valeur de l'id de chaque formulaire dans la session
+    for form in form_data["forms"]:
+      form_id = form["id"]
+      print(f"ID du f ormulaire : {form_id}")
+      if form_id == str(myForm.idForm):
+        print("Le formulaire est dans la session ")
+        #vérifier si le formulaire est en ligne ou non
+        if not myForm.isOnline:
+          #remplacer le formulaire dans la session par le formulaire en cours
+          #form_data["forms"].remove(form)
+          #form_data = addcurrentFormToSession()
+          print("#form_data = addcurrentFormToSession()")
+      else:
+        print("form_data incomplet")
+        print("form_data = addcurrentFormToSession()")
+        #form_data = addcurrentFormToSession()
+    if form_data == None:
+      print("form_data vide")
+      #form_data = addcurrentFormToSession()
+      print("#form_data = addcurrentFormToSession()")
+
+  print("____________________")
+  print(request.POST)
+  print("____________________")
   
   if request.method == 'POST':
-    for key, value in request.POST.items(): 
-      #chercher la question dans le json et ajouter la réponse
-      for form in form_data['forms']:
-        for page in form['pages']:
-          for question in page['questions']:
-            if question['id'] == key:
-              question['answer'].append(value)
-              break
-  #enregistrer dans la session
-  request.session['form_data'] = form_data
-  with open('test.json', 'w') as outfile:
-    json.dump(form_data, outfile)
+    # Parcourir les questions du formulaire en session
+    for form in form_data["forms"]:
+      if form["id"] == str(myForm.idForm):
+        for page in form["pages"]:
+          for question in page["questions"]:
+            # Récupérer toutes les réponses associées à la question
+            question_answers = request.POST.getlist(question['id'])
 
+            if question_answers:
+              # Si des réponses sont présentes, les ajouter à la question
+              question["answer"] = question_answers
+              question["isanswered"] = True
+            else:
+              # S'il n'y a pas de réponse, marquer la question comme non répondu
+              question["isanswered"] = False
+
+
+    #maj de la session 
+    request.session['form_data'] = form_data
+    with open('test.json', 'w') as outfile:
+      json.dump(form_data, outfile)
+
+  print("--------------------")
+  print(myPages)
+  print(type(myPages))
+  all_questions = Question.objects.filter(page__in=myPages).order_by('order')
+  print(all_questions)
 
   context = {
     'myForm': myForm,
     'myPages': myPages,
+    'all_questions': all_questions,
     'preview': preview_doc,
+    'myDependencies': my_dependencies_serialized
   }
 
   return render(request, 'polls/answerForm.html', context)
-  
+
+def answerFormToDB(request):
+  if 'form_data' in request.session:
+    form_data = request.session['form_data']
+
+    # Vous devez parcourir les données et les enregistrer dans la table ParticipantAnswer
+    for form in form_data['forms']:
+      form_obj = Form.objects.get(idForm=form['id'])
+      for page in form['pages']:
+        for question in page['questions']:
+          # Assurez-vous que les réponses et les identifiants sont corrects
+          question_id = question['id']
+          answer_ids  = question['answer']
+
+          # Recherchez les objets Question et Answer correspondants dans la base de données
+          try:
+            question_obj = Question.objects.get(id=question_id)
+            answers = Answer.objects.filter(id__in=answer_ids)
+          except (Question.DoesNotExist, Answer.DoesNotExist):
+            # Gérez les erreurs comme vous le souhaitez
+            continue
+
+          # Créez des entrées ParticipantAnswer pour chaque réponse
+          for answer in answers:
+            ParticipantAnswer.objects.create(
+              Participant=request.session['myParticipant'],
+              Form=form_obj,  # Remplacez par l'objet Form correspondant
+              question=question_obj,
+              answer=answer,
+              text=answer.text  # Utilisez le champ texte approprié
+            )
+
+    # Supprimez les données de session après les avoir traitées
+    del request.session['form_data']
+  # Redirigez l'utilisateur vers la page "end.html"
+  return redirect('end')
+
+
+
+
+
+
+#def answerFormToDB(request):
+  #récupérer les données du formulaire dans la session
+  #enregistrer les données dans la base de données
+  #redirect vers une page de fin vec le texte de conclusion du formulaire
+
+
 
 #def reponse(request, username, idForm):
 #vérifier si le user existe dans la base de données
@@ -708,12 +907,3 @@ def reponse(request, username, idForm):
 #on enregistre les données dans la base de données
 #on supprime les données du formulaire dans la session
 #on redirige vers une page de fin vec le texte de conclusion du formulaire
-
-
-
-
-
-
-
-
-
