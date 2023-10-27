@@ -28,3 +28,15 @@ if __name__ == '__main__':
 #   ! Pour éxécution automatique :                  #
 #   ! -> étudier signal.py de django                #
 #####################################################
+
+# executer la commande "pip -r ./requirement.txt"
+# modifier la bdd dans settings.py pour mettre celle par défaut "sqllite3.db" de django 
+# executer la commande "python ./manage.py createsuperuser"
+# Suivre les commandes pour créer un super admin
+# executer la commande "python ./manage.py runserver"
+# Se logger au site : 127.0.0.1:8000/admin
+# Se loger au site admin avec les identifiants du super user 
+# Se rendre sur la table "Type" 
+# Ajouter les différents type (donner la liste exacte)
+# Enregistrer et se rendre sur le site : 127.0.0.1:8000
+# Créer un user et se logger au site avec le bon Login et le bon PWD
