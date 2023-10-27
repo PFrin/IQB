@@ -1,6 +1,6 @@
 /*header*/
 
-header {
+.MainBody {
     background-image: linear-gradient(90deg,#2f6fe4,#f20252,#ff3800);
     border-bottom-style: none;
     border-bottom-width: 1px;
@@ -20,7 +20,7 @@ header {
 }
 
 h2.card-title {
-    color: white;
+    color: rgb(0, 0, 0);
 }
 
 .profil-image {
@@ -104,4 +104,27 @@ ol.q {list-style-type: upper-roman;}
 ol.r {list-style-type: none;}
 ol.s {list-style-type: inherit;}
 </style>
+*/
+
+.fixed-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999; /* Pour s'assurer que le bouton est au-dessus du contenu */
+}
+
+.card .card-header {
+    background-color: gray;
+    border-bottom: 1px solid #000000;
+}
+
+/* CSS pour le panneau latéral */
+/*
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;  Assurez-vous que le panneau occupe toute la hauteur de la fenêtre 
+    z-index: 1000;  Pour s'assurer que le panneau est au-dessus du contenu principal 
+}
 */
