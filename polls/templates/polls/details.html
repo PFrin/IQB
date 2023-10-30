@@ -77,13 +77,13 @@
                 <div class="position-sticky">
                     <!-- Le contenu de votre panneau latéral ici -->
                     <ul class="nav flex-column">
-                        <li class="nav-item">
+                        <li class="nav-item" style="margin-top:20px";>
                             <a class="nav-link" href="#mes-formulaires-en-ligne">Mes Formulaires en ligne</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" style="margin-top:20px";>
                             <a class="nav-link" href="#mes-formulaires-en-construction">Mes Formulaires en Construction</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" style="margin-top:20px";>
                             <a class="nav-link" href="#archive-form">Mes Archives</a>
                         </li>
                     </ul>
@@ -124,6 +124,10 @@
                 {% else %}
                 <p>aucun formulaire disponible</p>
                 {% endif %}
+
+                <button onclick="newForm('{{myCustomer}}');" class="fixed-button">
+                    <p>Créer un formulaire</p>
+                </button>
                 
 
                 <hr>
@@ -166,12 +170,7 @@
                 {% endif %}
 
                 <h1 id="archive-form">Mes Archives</h1>
-                <!-- Contenu de Nouveau Form -->
             </main>
         </div>
     </div>
-
-    <button onclick="newForm('{{myCustomer}}');" class="fixed-button">
-        <p>Créer un formulaire</p>
-    </button>
 {% endblock %}
