@@ -53,39 +53,43 @@ def CreateForm(request,loginCust):
 @csrf_exempt
 @login_required
 def details(request, loginCust):
-    if not request.user.is_authenticated:
-      return redirect('login')
-    if request.method == "POST":
-      action = request.POST.get("action")
-      if action == "newForm":
-        myCustomer = get_object_or_404(Customer, loginCust=loginCust)
-        
-        # Use the add_form method to create a new Form with default values
-        form = Form()
-        form.Customer = myCustomer
-        new_form = form.add_form()
-        
-        response_data = {
-            'success': True,
-            'latestFormId': new_form.idForm
-        }
-        return JsonResponse(response_data)
+  context = {}
+  if not request.user.is_authenticated:
+    return redirect('login')
+  if request.method == "POST":
+    action = request.POST.get("action")
+    if action == "newForm":
+      myCustomer = get_object_or_404(Customer, loginCust=loginCust)
 
-    try:
-        myCustomer = get_object_or_404(Customer, loginCust=loginCust)
-        myOnlineForm = Form.objects.filter(isOnline=True)
-        myFormUnderConstruction = Form.objects.filter(isOnline=False)
+      # Use the add_form method to create a new Form with default values
+      form = Form()
+      form.Customer = myCustomer
+      new_form = form.add_form()
+      print("ok")
+      response_data = {
+        'success': True,
+        'latestFormId': new_form.idForm
+      }
+      return JsonResponse(response_data)
 
-        context = {
-            'myCustomer': myCustomer,
-            'myOnlineForm': myOnlineForm,
-            'myFormUnderConstruction': myFormUnderConstruction,
-            'is_user_authenticated': request.user.is_authenticated,
-        }
-
-        return render(request, 'polls/details.html', context)
-    except Customer.DoesNotExist:
-        raise Http404("Customer does not exist")
+  try:
+    myCustomer = get_object_or_404(Customer, loginCust=loginCust)
+    print("---------------------------")
+    print (myCustomer)
+    myOnlineForm = Form.objects.filter(isOnline=True)
+    myFormUnderConstruction = Form.objects.filter(isOnline=False)
+    print("myFormUnderConstruction : ", myFormUnderConstruction)
+    print(type(myFormUnderConstruction))
+    context = {
+        'myCustomer': myCustomer,
+        'myOnlineForm': myOnlineForm,
+        'myFormUnderConstruction': myFormUnderConstruction,
+        'is_user_authenticated': request.user.is_authenticated,
+    }      
+    return render(request, 'polls/details.html', context)
+  except Customer.DoesNotExist:
+    raise Http404("Customer does not exist")
+      
 
 
 
@@ -516,29 +520,44 @@ import logging
 logger = logging.getLogger(__name__)
 
 def login_view(request):
-  if request.method == 'POST':
-    form = LoginForm(request, data=request.POST)
-    if form.is_valid():
-      username = form.cleaned_data['username']
-      password = form.cleaned_data['password']
-      user = authenticate(request, loginCust=username, password=password)
-      if user is not None and isinstance(user, Customer):
-        login(request, user)
-        logger.info('Utilisateur connecté avec succès: %s', user.loginCust)
-        #return HttpResponse("Ça fonctionne !")
-        return redirect('details',  user.loginCust)
-      else:
-        error_message = 'Identifiants invalides.'
-        logger.warning('Échec de l\'authentification pour l\'utilisateur: %s', username)
-        return render(request, 'polls/login.html', {'form': form, 'error': error_message})
-  else:
+    print("login_view")
+    context = {}
+    if request.method == 'POST':
+        print("POST")
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, loginCust=username, password=password)
+            if user is not None and isinstance(user, Customer):
+                login(request, user)
+                logger.info('Utilisateur connecté avec succès: %s', user.loginCust)
+                print(f"Utilisateur connecté avec succès: {user.loginCust}")  # Ajout d'un print
+                return redirect('details', user.loginCust)
+            else:
+                error_message = 'Identifiants invalides.'
+                logger.warning('Échec de l\'authentification pour l\'utilisateur: %s', username)
+                print(f'Échec de l\'authentification pour l\'utilisateur: {username}')  # Ajout d'un print
+                context = {
+                    'form': form,
+                    'error': error_message,
+                    'is_user_authenticated': request.user.is_authenticated,
+                }
+                return render(request, 'polls/login.html', context)
+        else:
+            print("Formulaire invalide")
+            print(form.errors)  # Afficher les erreurs de validation
+    else:
+        print("autre que POST")
     form = LoginForm()
-
     context = {
-    'is_user_authenticated': request.user.is_authenticated,
-    'form': form
+        'is_user_authenticated': request.user.is_authenticated,
+        'form': form
     }
-  return render(request, 'polls/login.html', context)
+    print("Affichage du formulaire de connexion")
+    return render(request, 'polls/login.html', context)
+
+
 
 
 
@@ -801,12 +820,16 @@ def reponse(request, username, idForm):
   all_questions = Question.objects.filter(page__in=myPages).order_by('order')
   print(all_questions)
 
+  #réponses de la session
+  user_responses = request.session.get('user_responses', {})
+
   context = {
     'myForm': myForm,
     'myPages': myPages,
     'all_questions': all_questions,
     'preview': preview_doc,
-    'myDependencies': my_dependencies_serialized
+    'myDependencies': my_dependencies_serialized,
+    'user_responses': user_responses.get(str(myForm.idForm), {})
   }
 
   return render(request, 'polls/answerForm.html', context)
