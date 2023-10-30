@@ -1,68 +1,206 @@
-<!-- answerForm.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <title>Answer Form</title>
+  <link rel="stylesheet" type="text/css" href="{{ myForm.css_file.url }}">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+
+    .content {
+      background-color: #fff;
+      margin: 0 auto;
+      padding: 20px;
+      max-width: 800px;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+    h3 {
+      text-align: left;
+    }
+
+    label {
+      display: block;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .submit-button {
+      margin-top: 20px;
+    }
+
+    /* Style pour la fenêtre modale */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      max-width: 800px;
+      position: relative;
+    }
+
+    .close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 10px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h1>{{ myForm.titleForm }}</h1>
+  <div class="content">
+    <h1>{{ myForm.titleForm }}</h1>
 
-  {% for page in myPages %}
-    <h2>Page {{ page.number }}</h2>
+    {% for page in myPages %}
+      <h2>Page {{ page.number }}</h2>
 
-    <form method="post" action="" >
-      {% csrf_token %}
-      {% for question in all_questions %}
-        {% if question.page == page %}
-          <section id="{{ question.idQuestion }}">
-          <h3 class="{% if question.isObligatory %}obligatory{% endif %}">{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
-      
-          {% if question.type.typeQuestion == 'question ouverte' %}
-            <textarea name="{{ question.idQuestion }}"></textarea>
-          {% else %}
-              {% for answer in question.answer_set.all %}
-              <label>
-                {% if question.type.typeQuestion == 'choix multiple' %}
-                  <input type="checkbox" class="{{ question.idQuestion }}" name="{{ question.idQuestion }}" value="{{ question.answer.idAnswer }}"
-                  {% for key, value in session_data.items %}
-                    {% if answer.idQuestion in key and value == answer.idAnswer %}
-                      checked
+      <form method="post" action="">
+        {% csrf_token %}
+        {% for question in all_questions %}
+          {% if question.page == page %}
+            <section id="{{ question.idQuestion }}" class="question-section">
+              <h3 class="{% if question.isObligatory %}obligatory{% endif %}">{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
+          
+              {% if question.type.typeQuestion == 'question ouverte' %}
+                <textarea name="{{ question.idQuestion }}" class="form-control"></textarea>
+              {% else %}
+                  {% for answer in question.answer_set.all %}
+                  <label class="form-check-label">
+                    {% if question.type.typeQuestion == 'choix multiple' %}
+                      <input type="checkbox" class="{{ question.idQuestion }} form-check-input" name="{{ question.idQuestion }}" value="{{ question.answer.idAnswer }}"
+                      {% for key, value in session_data.items %}
+                        {% if answer.idQuestion in key and value == answer.idAnswer %}
+                          checked
+                        {% endif %}
+                      {% endfor %}
+                      >
+                    {% else %}
+                      <input type="radio" class="{{ question.idQuestion }} form-check-input" name="{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
+                      {% for key, value in session_data.items %}
+                        {% if answer.idQuestion in key and value == answer.idAnswer %}
+                          checked
+                        {% endif %}
+                      {% endfor %}
+                      >
                     {% endif %}
-                  {% endfor %}
-                  >
-                {% else %}
-                  <input type="radio" class="{{ question.idQuestion }}" name="{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
-                  {% for key, value in session_data.items %}
-                    {% if answer.idQuestion in key and value == answer.idAnswer %}
-                      checked
-                      style="color: red";
-                    {% endif %}
-                  {% endfor %}
-                  >
-                {% endif %}
-                {{ answer.Answer }}
-              </label><br>
-            {% endfor %}
+                    {{ answer.Answer }}
+                  </label><br>
+                {% endfor %}
+              {% endif %}
+            </section>
           {% endif %}
-          </section>
-        {% endif %}
-      {% endfor %}
-    
-      <input type="submit" value="Submit">
-    </form>
-    <p>* Indique une question obligatoire<p>
-  {% endfor %}
-  {% if preview %}
-  <input type="submit" value="Envoyer le Formulaire" disabled>
-  {% else %}
-    <input type="submit" value="Envoyer le Formulaire" onclick='theEnd();'>
-  {% endif %}
+        {% endfor %}
+      
+        <input type="submit" value="Submit" class="btn btn-primary">
+      </form>
+      <p>* Indique une question obligatoire</p>
+    {% endfor %}
+
+    <div class="button-container">
+      {% if preview %}
+      <input type="submit" value="Envoyer le Formulaire" disabled>
+      {% else %}
+        <input type="submit" value="Envoyer le Formulaire" onclick='theEnd();'>
+      {% endif %}
+    </div>
+  </div>
   <hr>
+
+  <!-- Fenêtre modale -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModalButton">&times;</span>
+      <div class="content">
+        <h1>{{ myForm.titleForm }}</h1>
+
+        <!-- Formulaire de personnalisation du style -->
+        <h2>Personnaliser le Style</h2>
+        <label for="backgroundColor">Couleur de Fond :</label>
+        <input type="color" id="backgroundColor" name="backgroundColor">
+        <label for="fontFamily">Police de Caractères :</label>
+        <select id="fontFamily" name="fontFamily">
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="Times New Roman, serif">Times New Roman</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+          <!-- Ajoutez d'autres options de police ici -->
+        </select>
+        <label for="textColor">Couleur du Texte :</label>
+        <input type="color" id="textColor" name="textColor">
+        <!-- Ajoutez d'autres options de personnalisation ici -->
+        <button id="applyStyleButton">Appliquer le Style</button>
+        <button id="resetStyleButton">Réinitialiser le Style</button>
+        <!-- Fin du formulaire de personnalisation -->
+      </div>
+    </div>
+  </div>
+
+  <button id="openModalButton">Ouvrir le Formulaire</button>
+
 </body>
 </html>
+<!-- ... Votre HTML ... -->
+<!-- SCRIPT pour gérer l'ouverture et la fermeture de la fenêtre modale et appliquer le style -->
+<script>
+  var openModalButton = document.getElementById('openModalButton');
+  var closeModalButton = document.getElementById('closeModalButton');
+  var modal = document.getElementById('modal');
+  var applyStyleButton = document.getElementById('applyStyleButton');
+
+  openModalButton.addEventListener('click', function () {
+    modal.style.display = 'block';
+  });
+
+  closeModalButton.addEventListener('click', function () {
+    modal.style.display = 'none';
+  });
+
+  applyStyleButton.addEventListener('click', function () {
+    var backgroundColor = document.getElementById('backgroundColor').value;
+    var fontFamily = document.getElementById('fontFamily').value;
+    var textColor = document.getElementById('textColor').value;
+
+    var styleCSS = `body {
+      background-color: ${backgroundColor};
+      font-family: ${fontFamily};
+      color: ${textColor};
+    }`;
+
+    // Créer un élément <style> dynamique et injecter le style CSS
+    var styleElement = document.createElement('style');
+    styleElement.innerHTML = styleCSS;
+    document.head.appendChild(styleElement);
+
+    // Fermer la fenêtre modale
+    modal.style.display = 'none';
+  });
+
+  data = ; //fichier de style
+
+</script>
+
 
 <!-- SCRIPT qui vérifie si le bouton submit d'une page rempli la condition de réponses aux questions -->
 <script>
+
   // Sélectionnez tous les formulaires sur la page
 const forms = document.querySelectorAll('form');
 
@@ -280,5 +418,4 @@ function theEnd() {
 
 
 </script>
-
 

@@ -68,3 +68,5 @@ ERROR_MIN_ANSWER_INVALID = "Le nombre minimal de réponses doit être supérieur
 ERROR_MIN_ANSWER_EXCEEDED_TOTAL = "Le nombre minimal de réponses ne peut pas dépasser le nombre total de réponses de la question."
 ERROR_MAX_ANSWER_INVALID = "Le nombre maximal de réponses doit être supérieur ou égal au nombre minimal de réponses."
 ERROR_MAX_ANSWER_EXCEEDED_TOTAL = "Le nombre maximal de réponses ne peut pas dépasser le nombre total de réponses de la question."
+
+STATIC_URL_STYLE = '/static/IQB/css/'
