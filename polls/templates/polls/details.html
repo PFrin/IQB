@@ -90,9 +90,8 @@
                 </div>
             </nav>
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- ... Votre code HTML existant ... -->
-                {% if myOnlineForm|length > 0 %}
                 <h1 id="mes-formulaires-en-ligne">Mes Formulaires en ligne </h1>
+                {% if myOnlineForm|length > 0 %}
                 <div class="row">
                     {% for x in myOnlineForm %}
                     <div class="col-md-4">
@@ -122,11 +121,14 @@
                     </div>
                     {% endfor %}
                 </div>
+                {% else %}
+                <p>aucun formulaire disponible</p>
                 {% endif %}
-                {% if myFormUnderConstruction|length > 0 %}
+                
 
                 <hr>
                 <h1 id="mes-formulaires-en-construction">Mes Formulaires en Construction</h1>
+                {% if myFormUnderConstruction|length > 0 %}
                 <div class="row">
                     {% for x in myFormUnderConstruction %}
                     <div class="col-md-4">
@@ -158,6 +160,8 @@
                     </div>
                     {% endfor %}
                 </div>
+                {% else %}
+                <p>aucun formulaire disponible</p>
                 <hr>
                 {% endif %}
 
