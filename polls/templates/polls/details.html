@@ -43,8 +43,30 @@
         }
         function removeForm(myCustomer,formId) {
             console.log(formId);
-            var redirectUrl = '/' + myCustomer + formId.toString() + '/';
+            var redirectUrl = '/' + myCustomer + '/';
             document.location.href = redirectUrl;
+            
+            console.log(myCustomer.loginCust);
+            console.log(formId);
+            $.ajax({
+                type: 'POST',
+                url: '{% url "details" loginCust=myCustomer.loginCust %}',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'action': 'deleteForm',
+                    'Customer': myCustomer,
+                    'formId': formId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        //Rechargement de la page
+                        location.reload();
+                    } else {
+                        console.log("Échec");
+                    }
+                }
+            });
+
         } 
     </script> 
     
@@ -70,7 +92,7 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <!-- ... Votre code HTML existant ... -->
                 {% if myOnlineForm|length > 0 %}
-                <h1 id="mes-formulaires-en-ligne">Mes Formulaires en ligne : </h1>
+                <h1 id="mes-formulaires-en-ligne">Mes Formulaires en ligne </h1>
                 <div class="row">
                     {% for x in myOnlineForm %}
                     <div class="col-md-4">
@@ -124,7 +146,7 @@
                                 <button onclick="editForm('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
                                     <i class="fas fa-edit"></i> Modifier le formulaire
                                 </button>
-                                <button action="{% url 'reponse' x.idForm %}" class="btn btn-primary">
+                                <button  onclick="preview('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
                                     <i class="fas fa-eye"></i> Voir le rendu
                                 </button>
                                 <div class="form-check form-switch">
@@ -146,6 +168,6 @@
     </div>
 
     <button onclick="newForm('{{myCustomer}}');" class="fixed-button">
-        <p>nouveau form</p>
+        <p>Créer un formulaire</p>
     </button>
 {% endblock %}

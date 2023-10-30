@@ -116,6 +116,14 @@ class Form(models.Model):
         print("page créé avec succès")
         page.add_init_question()
         return page
+    
+    def delete_form(self):
+        form_to_delete = Form.objects.filter(idForm=self.idForm)
+        if form_to_delete.exists():
+            form_to_delete.delete()
+            return True
+        else:
+            return False
 
 
 class Page(models.Model):
@@ -448,7 +456,7 @@ class Participant(models.Model):
     replayDate   = models.DateTimeField(auto_now_add=True) # date de la création de l'objet et donc de réponse au 1er formulaire
 
     def __str__(self):
-        return self.idParticipant
+        return self.loginParticipant
     
     #créer un Participant
     def create_participant(self, loginParticipant):
@@ -465,9 +473,9 @@ class ParticipantAnswer(models.Model):
     text         = models.TextField(max_length=100)
 
     def __str__(self):
-        return self.Participant.__str__()
+        return self.answer.__str__()
     
-    def create_participantAnswer(self, Participant, Form, question, answer, text):
+    def create_participantAnswer(Participant, Form, question, answer, text):
         ParticipantAnswer.objects.create(
             Participant=Participant,
             Form=Form,
