@@ -71,6 +71,16 @@ def details(request, loginCust):
         'latestFormId': new_form.idForm
       }
       return JsonResponse(response_data)
+    if action == "deleteForm":
+      formId = request.POST.get("formId")
+      myForm = get_object_or_404(Form, idForm=formId)
+      myForm.delete_form()
+      
+      response_data = {
+        'success': myForm.delete_form(),
+      }
+
+      return JsonResponse(response_data)
 
   try:
     myCustomer = get_object_or_404(Customer, loginCust=loginCust)
@@ -626,6 +636,14 @@ def preview_reponse(request, idForm):
   return reponse(request, None, idForm)
 
 def reponse(request, username, idForm):
+  #del request.session['form_data']
+  
+  #action = request.POST.get("action")
+  #if action == "theEnd":
+  #  print("theEnd")
+  #  answerFormToBDDTheEnddd()
+    
+    
   #clear la session
   #request.session.flush()
   print("------------------------")
@@ -642,10 +660,13 @@ def reponse(request, username, idForm):
   
   try:
     myParticipant = Participant.objects.get(loginParticipant=username)
+    
   except Participant.DoesNotExist:    #créer un utilisateur anonyme !!!
     myParticipant = Participant()
     myParticipant = myParticipant.create_participant(username)
-    myParticipant.save()
+  
+  
+  myParticipant.save()
     #idMyParticipant = myParticipant.idParticipant
     #ajouter dans la session
 
@@ -667,6 +688,7 @@ def reponse(request, username, idForm):
       preview_doc = True
       print("Mode aperçu concepteur !")
     else:
+      
       preview_doc = False
       print("Mode normal.")
       #vérifier si le formulaire est en ligne
@@ -708,11 +730,6 @@ def reponse(request, username, idForm):
             'type': str(question.type),
             'answer': []
           }
-
-          #afficher le nom de chaque question et son ordre
-          print(f"Question : {question.title}")
-          print(f"Ordre : {question.order}")
-
         
           page_data['questions'].append(question_data)
 
@@ -722,23 +739,12 @@ def reponse(request, username, idForm):
       #maj de la session 
       request.session['form_data'] = form_data
 
-      print("form_data : ")
-      print(form_data)  
-      print("--------------------")
-
         # indentation auto:  Alt + Shift + F
         #enregistrer dans un fichier test.json
       with open('test.json', 'w') as outfile:
         json.dump(form_data, outfile)
       #enregistrer dans la session
       request.session['form_data'] = form_data
-
-
-    print("--------------------")
-    print("|      actions     |")
-    print("--------------------")
-    print("session :")
-    print(request.session.items())
 
     try:
       form_data = request.session['form_data']
@@ -761,10 +767,6 @@ def reponse(request, username, idForm):
       #ajouter le formulaire dans la session
 
     form_data = request.session['form_data']
-
-
-
-
 
     #récupéré la valeur de l'id de chaque formulaire dans la session
     for form in form_data["forms"]:
@@ -791,6 +793,7 @@ def reponse(request, username, idForm):
   print(request.POST)
   print("____________________")
   
+  
   if request.method == 'POST':
     # Parcourir les questions du formulaire en session
     for form in form_data["forms"]:
@@ -813,6 +816,16 @@ def reponse(request, username, idForm):
     request.session['form_data'] = form_data
     with open('test.json', 'w') as outfile:
       json.dump(form_data, outfile)
+      
+  #vérifier preview
+  if request.method == 'GET':
+    print("GETTTT")
+    #si thenEnd est dans la requete
+  for key in request.GET:
+    if key == 'theEnd':
+      print("theEndddddddddddd")
+      answerFormToBDDTheEnd(request)
+
 
   print("--------------------")
   print(myPages)
@@ -831,48 +844,89 @@ def reponse(request, username, idForm):
     'myDependencies': my_dependencies_serialized,
     'user_responses': user_responses.get(str(myForm.idForm), {})
   }
-
+  
+  #reponse(request, username, idForm):
+  #return render(request, 'polls/answerForm.html ', context)
+  #redirect_url = '/'+username+'/form/'+ idForm
+  #return redirect(redirect_url)
+  #return render(request, 'polls/answerForm.html', context)
+  print("fin de la fonction reponse")
   return render(request, 'polls/answerForm.html', context)
 
-def answerFormToDB(request):
-  if 'form_data' in request.session:
-    form_data = request.session['form_data']
+def answerFormToBDDTheEnd(request):
+    form_data = request.session.get('form_data')
+    if not form_data:
+        return redirect('end')  # Rediriger si les données du formulaire ne sont pas présentes en session
 
-    # Vous devez parcourir les données et les enregistrer dans la table ParticipantAnswer
-    for form in form_data['forms']:
-      form_obj = Form.objects.get(idForm=form['id'])
-      for page in form['pages']:
-        for question in page['questions']:
-          # Assurez-vous que les réponses et les identifiants sont corrects
-          question_id = question['id']
-          answer_ids  = question['answer']
+    myParticipant = request.session.get('myParticipant')
+    if not myParticipant:
+        return redirect('end')  # Rediriger si l'utilisateur n'est pas défini en session
 
-          # Recherchez les objets Question et Answer correspondants dans la base de données
-          try:
-            question_obj = Question.objects.get(id=question_id)
-            answers = Answer.objects.filter(id__in=answer_ids)
-          except (Question.DoesNotExist, Answer.DoesNotExist):
-            # Gérez les erreurs comme vous le souhaitez
-            continue
+    myParticipant = Participant.objects.get(loginParticipant=myParticipant)
 
-          # Créez des entrées ParticipantAnswer pour chaque réponse
-          for answer in answers:
-            ParticipantAnswer.objects.create(
-              Participant=request.session['myParticipant'],
-              Form=form_obj,  # Remplacez par l'objet Form correspondant
-              question=question_obj,
-              answer=answer,
-              text=answer.text  # Utilisez le champ texte approprié
-            )
+    for form_info in form_data['forms']:
+        form_obj = Form.objects.get(idForm=form_info['id'])
+        for page in form_info['pages']:
+            for question_info in page['questions']:
+                question_id = question_info['id']
+                answer_ids = question_info['answer']
+                print("answer_ids")
+                print(answer_ids)
+                
+                try:
+                    question_obj = Question.objects.get(idQuestion=question_id)
+                except Question.DoesNotExist:
+                    # Gérez les erreurs comme vous le souhaitez (peut-être enregistrer l'erreur)
+                    print("Question.DoesNotExist")
+                    continue
+                print("_____ALED___________")
+                for answer_id in answer_ids:
+                    if is_valid_uuid(answer_id):
+                        try:
+                            myAnswer = Answer.objects.get(idAnswer=answer_id)
+                        except Answer.DoesNotExist:
+                            myAnswer = None  # Définissez myAnswer sur None si l'objet n'existe pas pour gérer les deux cas.
+
+                    if myAnswer is None:
+                        # Créez la réponse si elle n'existe pas ou si l'UUID n'est pas valide
+                        myAnswer = Answer.objects.create(
+                            type=question_obj.type,
+                            question=question_obj,
+                            text=answer_id
+                        )
+                        myAnswer.save()
+                    
+                    answerText = myAnswer.Answer
+                    
+                    # Enregistrez ParticipantAnswer pour chaque réponse
+                    ParticipantAnswer.objects.create(
+                        Participant=myParticipant,
+                        Form=form_obj,
+                        question=question_obj,
+                        answer=myAnswer,
+                        text=answerText
+                    )
+                    print("answer")
+                    print(myAnswer)
+                    print(answerText)
 
     # Supprimez les données de session après les avoir traitées
     del request.session['form_data']
-  # Redirigez l'utilisateur vers la page "end.html"
-  return redirect('end')
+    
+    # Redirigez l'utilisateur vers la page "end.html"
+    return redirect('end')
 
 
+def end(request):
+  print("end")
+  return render(request, 'polls/end.html')
 
-
+def is_valid_uuid(uuid_to_test, version=4):
+    try:
+        uuid_obj = uuid.UUID(uuid_to_test, version=version)
+        return True
+    except (ValueError, TypeError, AttributeError):
+        return False
 
 
 #def answerFormToDB(request):

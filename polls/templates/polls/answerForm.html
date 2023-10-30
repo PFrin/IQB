@@ -71,48 +71,50 @@
     <h1>{{ myForm.titleForm }}</h1>
 
     {% for page in myPages %}
-      <h2>Page {{ page.number }}</h2>
+      <div class="page">
+        <h2>Page {{ page.number }}</h2>
 
-      <form method="post" action="">
-        {% csrf_token %}
-        {% for question in all_questions %}
-          {% if question.page == page %}
-            <section id="{{ question.idQuestion }}" class="question-section">
-              <h3 class="{% if question.isObligatory %}obligatory{% endif %}">{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
-          
-              {% if question.type.typeQuestion == 'question ouverte' %}
-                <textarea name="{{ question.idQuestion }}" class="form-control"></textarea>
-              {% else %}
-                  {% for answer in question.answer_set.all %}
-                  <label class="form-check-label">
-                    {% if question.type.typeQuestion == 'choix multiple' %}
-                      <input type="checkbox" class="{{ question.idQuestion }} form-check-input" name="{{ question.idQuestion }}" value="{{ question.answer.idAnswer }}"
-                      {% for key, value in session_data.items %}
-                        {% if answer.idQuestion in key and value == answer.idAnswer %}
-                          checked
-                        {% endif %}
-                      {% endfor %}
-                      >
-                    {% else %}
-                      <input type="radio" class="{{ question.idQuestion }} form-check-input" name="{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
-                      {% for key, value in session_data.items %}
-                        {% if answer.idQuestion in key and value == answer.idAnswer %}
-                          checked
-                        {% endif %}
-                      {% endfor %}
-                      >
-                    {% endif %}
-                    {{ answer.Answer }}
-                  </label><br>
-                {% endfor %}
-              {% endif %}
-            </section>
-          {% endif %}
-        {% endfor %}
-      
-        <input type="submit" value="Submit" class="btn btn-primary">
-      </form>
-      <p>* Indique une question obligatoire</p>
+        <form method="post" action="">
+          {% csrf_token %}
+          {% for question in all_questions %}
+            {% if question.page == page %}
+              <section id="{{ question.idQuestion }}" class="question-section">
+                <h3 class="{% if question.isObligatory %}obligatory{% endif %}">{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
+            
+                {% if question.type.typeQuestion == 'question ouverte' %}
+                  <textarea name="{{ question.idQuestion }}" class="form-control"></textarea>
+                {% else %}
+                    {% for answer in question.answer_set.all %}
+                    <label class="form-check-label">
+                      {% if question.type.typeQuestion == 'choix multiple' %}
+                        <input type="checkbox" class="{{ question.idQuestion }} form-check-input" name="{{ question.idQuestion }}" value="{{ question.answer.idAnswer }}"
+                        {% for key, value in session_data.items %}
+                          {% if answer.idQuestion in key and value == answer.idAnswer %}
+                            checked
+                          {% endif %}
+                        {% endfor %}
+                        >
+                      {% else %}
+                        <input type="radio" class="{{ question.idQuestion }} form-check-input" name="{{ question.idQuestion }}" value="{{ answer.idAnswer }}"
+                        {% for key, value in session_data.items %}
+                          {% if answer.idQuestion in key and value == answer.idAnswer %}
+                            checked
+                          {% endif %}
+                        {% endfor %}
+                        >
+                      {% endif %}
+                      {{ answer.Answer }}
+                    </label><br>
+                  {% endfor %}
+                {% endif %}
+              </section>
+            {% endif %}
+          {% endfor %}
+        
+          <input type="submit" value="Submit" class="btn btn-primary">
+        </form>
+        <p>* Indique une question obligatoire</p>
+      </div>
     {% endfor %}
 
     <div class="button-container">
@@ -124,6 +126,12 @@
     </div>
   </div>
   <hr>
+  <!-- Ajoutez ces éléments HTML à la fin de votre document body -->
+  <div id="pagination" style="text-align: center;">
+    <button id="prevPage" disabled>Page précédente</button>
+    <button id="nextPage">Page suivante</button>
+    <button id="submitForm" style="display: none;">Envoyer le Formulaire</button>
+  </div>
 
   <!-- Fenêtre modale -->
   <div id="modal" class="modal">
@@ -193,13 +201,17 @@
     modal.style.display = 'none';
   });
 
-  data = ; //fichier de style
+  data =  null; //fichier de style
 
 </script>
 
 
 <!-- SCRIPT qui vérifie si le bouton submit d'une page rempli la condition de réponses aux questions -->
 <script>
+
+var currentPage = 1; // Page actuelle
+//page max valides
+var pageMax = 1;
 
   // Sélectionnez tous les formulaires sur la page
 const forms = document.querySelectorAll('form');
@@ -254,12 +266,74 @@ forms.forEach((form, index) => {
     // Si toutes les questions obligatoires ont été répondues, soumettez le formulaire
     if (allQuestionsAnswered) {
       form.submit();
+      console.log("submit");
+      console.log(currentPage);
+      console.log(pageMax);
+      if (currentPage == pageMax) {
+        currentPage++;
+      }
     } else {
       // Sinon, affichez un message d'erreur ou effectuez une autre action appropriée
       alert(`Veuillez répondre à toutes les questions obligatoires du formulaire ${index + 1}.`);
     }
   });
 });
+
+//////////////////////////////////////////
+// SCRIPT qui gere l'afichage des pages //
+//////////////////////////////////////////
+
+var totalPages = {{ myPages|length }}; // Le nombre total de pages de votre formulaire
+
+// Événement pour afficher la page actuelle
+function showCurrentPage() {
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) {
+    if (i === currentPage - 1) {
+      pages[i].style.display = 'block';
+    } else {
+      pages[i].style.display = 'none';
+    }
+  }
+
+  // Gérer l'affichage des boutons "Page précédente" et "Page suivante"
+  var prevButton = document.getElementById('prevPage');
+  var nextButton = document.getElementById('nextPage');
+  var submitButton = document.getElementById('submitForm');
+
+  if (currentPage === 1) {
+    prevButton.disabled = true;
+  } else {
+    prevButton.disabled = false;
+  }
+
+  if (currentPage === totalPages) {
+    nextButton.style.display = 'none';
+    submitButton.style.display = 'block';
+  } else {
+    nextButton.style.display = 'block';
+    submitButton.style.display = 'none';
+  }
+}
+
+// Événement pour passer à la page suivante
+document.getElementById('nextPage').addEventListener('click', function () {
+  if (currentPage < totalPages && currentPage < pageMax) {
+    currentPage++;
+    showCurrentPage();
+  }
+});
+
+// Événement pour revenir à la page précédente
+document.getElementById('prevPage').addEventListener('click', function () {
+  if (currentPage > 1) {
+    currentPage--;
+    showCurrentPage();
+  }
+});
+
+// Afficher la première page lors du chargement initial
+showCurrentPage();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SCRIPT qui vérifie si les conditions de réponses aux questions sont remplies au chargerment de la page //
@@ -387,35 +461,13 @@ function shouldShowQuestion(responses) {
 })();
 
 function theEnd() {
-  alert("Merci d'avoir répondu au formulaire");
-
-  try {
-    // Envoyer une requête AJAX pour enregistrer les données dans la base de données
-    $.ajax({
-      type: 'POST',
-      url: '{% url "answerFormToDB" %}', // Remplacez par le nom de votre URL Django
-      data: {},  // Vous n'avez pas besoin de transmettre les données ici, car vous les récupérerez directement dans la vue Django
-      success: function(response) {
-        if (response.success) {
-          // Gérez la réponse du serveur en cas de succès
-          console.log('Mise à jour réussie');
-          // Redirigez vers la page de conclusion du formulaire
-          // window.location.href = '/votre-page-de-conclusion/';
-        } else {
-          // Gérez les erreurs du serveur
-          console.error("Échec de l'envoi du formulaire", response.error);
-        }
-      },
-      error: function(error) {
-        // Gérez les erreurs de la requête AJAX
-        console.error("Échec de l'envoi du formulaire", error);
-      }
-    });
-  } catch (e) {
-    console.log(e);
-  }
+  //ajouter "theEnd" en GET
+  //recuperer l'url courant
+  var url = window.location.href;
+  //ajouter "theEnd" en GET
+  url = url + "?theEnd";
+  document.location.href = url;
 }
-
 
 </script>
 

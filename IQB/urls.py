@@ -38,6 +38,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('register/',views.register_view, name='register'),
     path("admin/", admin.site.urls),
+    path('end/', views.end, name='end'),
     
     #test et debug
     
@@ -45,9 +46,10 @@ urlpatterns = [
     #path('<str:loginCust>/createQuestion/<str:idForm>/', views.QuestionView, name='QuestionView'),
     
     path('<str:username>/form/<str:idForm>/', views.reponse, name='preview'),
+    path('<str:loginParticipant>/form/<str:idForm>/', views.reponse, name='preview'),
     path('form/<str:idForm>/', views.reponse, name='reponse'),
     #path("Customer/<str:login>", views.CreateForm, login='login'),
-    path('answerFormToDB/', views.answerFormToDB, name='answerFormToDB'),
+    path('answerFormToDB/', views.reponse, name='answerFormToDB'),
     #test et debug
     #path('details/<str:loginCust>/', views.details, name='details'),        #http://127.0.0.1:8000/details/cust1/
     #Vu Client 

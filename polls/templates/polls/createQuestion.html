@@ -52,31 +52,40 @@
             console.log(redirectUrl);
             document.location.href = redirectUrl;
         }
-    </script>   
+    </script>
+   
     <div class="container-fluid">
+
+
         <div class="row">
             <!-- Panneau latéral de navigation -->
-            <div class="col-lg-3 col-md-3 col-sm-12 sidebar">
-                <!-- Titre du sidebar -->
-                <h2>Plan du Formulaire</h2>  
-                <!-- Contenu du panneau latéral de navigation -->
-                <ol class="nav flex-column no-list-style">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#introduction">intro</a>
-                    </li>
-                    {% for form in info_form %}
-                        {% for page in form.pages %}
-                            {% for question in page.questions %}
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#{{ question.question.idQuestion }}">{{ question.question.title }}</a>
-                                </li>
+            <!-- style="background:grey; -->
+            <div class="col-lg-3 col-md-3 col-sm-12 sidebar sidebar-content">
+                <div style="position:fixed;">
+                    <button onclick="MesFormulaires();" class="">
+                        <p>Mes Formulaires</p>
+                    </button>
+                    <!-- Titre du sidebar -->
+                    <h2>Plan du Formulaire</h2>  
+                    <!-- Contenu du panneau latéral de navigation -->
+                    <ol class="nav flex-column no-list-style">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#introduction">Intro</a>
+                        </li>
+                        {% for form in info_form %}
+                            {% for page in form.pages %}
+                                {% for question in page.questions %}
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#{{ question.question.idQuestion }}">{{ question.question.title }}</a>
+                                    </li>
+                                {% endfor %}
                             {% endfor %}
                         {% endfor %}
-                    {% endfor %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#conclusion">conclusion</a>
-                    </li>
-                </ol>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#conclusion">Conclusion</a>
+                        </li>
+                    </ol>
+                </div>
             </div>
 
 
@@ -938,6 +947,10 @@
         });
         $('#' + modal).modal('hide');
     }
+
+    function MesFormulaires():
+        console.log('MesFormulaires')
+        //redirectUrl = '/' + loginCust.idCustomer:
 
 </script>
 {% endblock %}
