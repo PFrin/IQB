@@ -5,10 +5,9 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Group, Permission, PermissionsMixin
 
-# Create your models here.
 class Type(models.Model):
-    idType = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True) 
-    typeQuestion  = models.TextField(max_length=100)
+    idType = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)
+    typeQuestion = models.TextField(max_length=100)
 
     def __str__(self):
         return self.typeQuestion
@@ -84,8 +83,10 @@ class Form(models.Model):
     CreationDate     = models.DateTimeField(auto_now_add=True)  # date de la création de l'objet
     MEPDate          = models.DateTimeField(blank=True, null=True)
     lastModifiedDate = models.DateTimeField(auto_now=True)      # date de la derniere modification de l'objet
-    isOnline         = models.BooleanField (default="False")
+    isOnline         = models.BooleanField(default=False)
     Customer         = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    css_file         = models.FileField(upload_to='custom_styles/', blank=True, null=False, default=STATIC_URL_STYLE + 'default.css')
+
 
     def publish(self):
         self.MEPDate = date.today()
