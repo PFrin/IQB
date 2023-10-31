@@ -617,19 +617,7 @@ def answerFormView(request):
   }
   
   return render(request, 'polls/answerForm.html', context)
-'''
-def PreView(request, loginCust, idForm):
-  myForm  = Form.objects.get(idForm=idForm)
-  myUser  = User.objects.get(loginCust=loginCust)
-  myPages = Page.objects.filter(Form=myForm).order_by('number')
 
-  context = {
-    'myForm' : myForm,
-    'myPages': myPages,
-    'myUser' : myUser,
-  }
-  return render(request, 'polls/answerForm.html', context)
-'''
 
 def preview_reponse(request, idForm):
   print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Mode aperçu concepteur !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -667,10 +655,8 @@ def reponse(request, username, idForm):
   
   
   myParticipant.save()
-    #idMyParticipant = myParticipant.idParticipant
-    #ajouter dans la session
-
   request.session['myParticipant'] = username
+  
   myPages = Page.objects.filter(Form=myForm).order_by('number')
   my_dependencies = list(QuestionDependency.objects.filter(dependent_question__page__Form=myForm))
   print("my_dependencies : ", my_dependencies)
@@ -704,8 +690,8 @@ def reponse(request, username, idForm):
         print("Formulaire hors ligne")
       
    
-    def addcurrentFormToSession(form_data):
-      print("Fct addcurrentFormToSession")
+    def addCurrentFormToSession(form_data):
+      print("Fct addCurrentFormToSession")
       newForm = {
         'id': str(myForm.idForm),
         'name': myForm.titleForm,
@@ -733,7 +719,7 @@ def reponse(request, username, idForm):
         
           page_data['questions'].append(question_data)
 
-      newForm['pages'].append(page_data)
+        newForm['pages'].append(page_data)
 
       form_data['forms'].append(newForm)
       #maj de la session 
@@ -752,19 +738,21 @@ def reponse(request, username, idForm):
       form_data = {
         'forms': []
       }
+    # Vérifiez si le formulaire existe déjà dans la session
+    form_exists_in_session = False
 
-    print(len(form_data['forms']))
-    if len(form_data['forms']) > 0:
-      for form in form_data['forms']:
+    for form in form_data['forms']:
         if form['id'] == str(myForm.idForm):
-          print("Formulaire trouvé dans la session")
-          break
-        else :
-          addcurrentFormToSession(form_data)
-          #ajouter le formulaire dans la session
-    else : 
-      addcurrentFormToSession(form_data)
-      #ajouter le formulaire dans la session
+            form_exists_in_session = True
+            break
+
+    # Si le formulaire n'existe pas dans la session, ajoutez-le
+    if not form_exists_in_session:
+        addCurrentFormToSession(form_data)
+        print("Formulaire ajouté dans la session")
+    else:
+        print("Formulaire trouvé dans la session")
+
 
     form_data = request.session['form_data']
 
@@ -778,16 +766,16 @@ def reponse(request, username, idForm):
         if not myForm.isOnline:
           #remplacer le formulaire dans la session par le formulaire en cours
           #form_data["forms"].remove(form)
-          #form_data = addcurrentFormToSession()
-          print("#form_data = addcurrentFormToSession()")
+          #form_data = addCurrentFormToSession()
+          print("#form_data = addCurrentFormToSession()")
       else:
         print("form_data incomplet")
-        print("form_data = addcurrentFormToSession()")
-        #form_data = addcurrentFormToSession()
+        print("form_data = addCurrentFormToSession()")
+        #form_data = addCurrentFormToSession()
     if form_data == None:
       print("form_data vide")
-      #form_data = addcurrentFormToSession()
-      print("#form_data = addcurrentFormToSession()")
+      #form_data = addCurrentFormToSession()
+      print("#form_data = addCurrentFormToSession()")
 
   print("____________________")
   print(request.POST)

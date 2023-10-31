@@ -27,12 +27,6 @@
       display: block;
     }
 
-    .button-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
     .submit-button {
       margin-top: 20px;
     }
@@ -63,6 +57,28 @@
       right: 0;
       padding: 10px;
       cursor: pointer;
+    }
+  </style>
+  <style>
+    .content {
+      position: relative;
+    }
+  
+    #pagination {
+      text-align: center;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      margin: 20px;
+    }
+  
+    #prevPage {
+      float: left;
+    }
+  
+    #nextPage,#submitForm {
+      float: right;
+      margin-right: 80px;
     }
   </style>
 </head>
@@ -116,22 +132,26 @@
         <p>* Indique une question obligatoire</p>
       </div>
     {% endfor %}
+      <div class="page">
+        <h2>MERCI</h2>
+        <h3>Fin du Formulaire</h3>
+        <p>{{ myForm.concludingText }}</p>
+      </div>
 
-    <div class="button-container">
-      {% if preview %}
-      <input type="submit" value="Envoyer le Formulaire" disabled>
+    <!-- Ajoutez ces éléments HTML à la fin de votre document body -->
+    <div id="pagination" style="text-align: center; margin-bottom: 10px">
+      <button id="prevPage" disabled>Page précédente</button>
+      <button id="nextPage">Page suivante</button>
+      {% if pageMax == totalPages %}
+        <input  id="submitForm" type="submit" value="Envoyer le Formulaire" onclick='theEnd();'>
       {% else %}
-        <input type="submit" value="Envoyer le Formulaire" onclick='theEnd();'>
+        <input  id="submitForm" type="submit" value="Envoyer le Formulaire" disabled>
       {% endif %}
     </div>
+
   </div>
   <hr>
-  <!-- Ajoutez ces éléments HTML à la fin de votre document body -->
-  <div id="pagination" style="text-align: center;">
-    <button id="prevPage" disabled>Page précédente</button>
-    <button id="nextPage">Page suivante</button>
-    <button id="submitForm" style="display: none;">Envoyer le Formulaire</button>
-  </div>
+
 
   <!-- Fenêtre modale -->
   <div id="modal" class="modal">
@@ -209,12 +229,85 @@
 <!-- SCRIPT qui vérifie si le bouton submit d'une page rempli la condition de réponses aux questions -->
 <script>
 
-var currentPage = 1; // Page actuelle
-//page max valides
-var pageMax = 1;
+// Récupérer l'ID du formulaire
+const formId = '{{ myForm.idForm }}';
+const totalPages = {{ myPages|length }} +1; // Le nombre total de pages de votre formulaire
+var curentPage = loadCurrentPage();
+var pageMax = loadPageMax();
 
+console.log("curentPage : ");
+console.log(curentPage);
+console.log("pageMax : ");
+console.log(pageMax);
+function saveCurrentPage(pageNumber) {
+  sessionStorage.setItem(`${formId}_currentPage`, pageNumber);
+  print
+}
+function savePageMax(pageMax) {
+  console.log("savePageMax : "+pageMax);
+  sessionStorage.setItem(`${formId}_pageMax`, pageMax);
+}
+
+function loadPageMax() {
+  var pageMax = sessionStorage.getItem(`${formId}_pageMax`);
+  console.log("pageMax : "+pageMax);
+  if (pageMax) {
+    if (pageMax > totalPages) {
+      pageMax = totalPages;
+    }
+    return parseInt(pageMax);
+  }
+  savePageMax(1);
+  return 1; // Valeur par défaut pour la première page
+}
+
+// Fonction pour charger la page actuelle à partir de la session
+
+function loadCurrentPage() {
+  var currentPage = sessionStorage.getItem(`${formId}_currentPage`);
+  console.log("currentPage : "+currentPage);
+  if (currentPage) {
+    return parseInt(currentPage);
+  }
+  saveCurrentPage(1);
+  return 1; // Valeur par défaut pour la première page
+}
+
+// Fonction pour gérer la navigation vers la page suivante
+function goToNextPage() {
+  var currentPage = loadCurrentPage();
+  var pageMax = loadPageMax();
+  
+  if (currentPage < totalPages && currentPage < pageMax) {
+    currentPage = currentPage+1;
+    pageMax = pageMax+1;
+    console.log("currentPage : "+currentPage);
+    saveCurrentPage(currentPage);
+    savePageMax(pageMax)
+
+    showCurrentPage(currentPage);
+
+  }
+  else{
+    console.log("ALEDDDDDDDDD");
+  }
+}
+
+// Fonction pour gérer la navigation vers la page précédente
+function goToPreviousPage() {
+  var currentPage = loadCurrentPage();
+  if (currentPage > 1) {
+
+    currentPage = currentPage-1;
+
+    saveCurrentPage(currentPage);
+
+    showCurrentPage(currentPage);
+  }
+}
   // Sélectionnez tous les formulaires sur la page
 const forms = document.querySelectorAll('form');
+
 
 // Parcourez chaque formulaire
 forms.forEach((form, index) => {
@@ -261,17 +354,24 @@ forms.forEach((form, index) => {
       }
     });
     console.log("good ? ");
-    console.log(allQuestionsAnswered);  
-
+    console.log(allQuestionsAnswered); 
+    max = loadPageMax();
+    max = max + 1;
+    savePageMax(max);
+    console.log("pageaxxxxxxxxx"+loadPageMax());
     // Si toutes les questions obligatoires ont été répondues, soumettez le formulaire
     if (allQuestionsAnswered) {
       form.submit();
       console.log("submit");
-      console.log(currentPage);
-      console.log(pageMax);
-      if (currentPage == pageMax) {
-        currentPage++;
-      }
+
+      //charger currentPage et pageMax
+      currentPage = loadCurrentPage();
+      pageMax = loadPageMax();
+
+      //si currentPage = pageMax, on incremente pageMax
+      savePageMax(pageMax++);
+      goToNextPage();
+
     } else {
       // Sinon, affichez un message d'erreur ou effectuez une autre action appropriée
       alert(`Veuillez répondre à toutes les questions obligatoires du formulaire ${index + 1}.`);
@@ -283,10 +383,10 @@ forms.forEach((form, index) => {
 // SCRIPT qui gere l'afichage des pages //
 //////////////////////////////////////////
 
-var totalPages = {{ myPages|length }}; // Le nombre total de pages de votre formulaire
+
 
 // Événement pour afficher la page actuelle
-function showCurrentPage() {
+function showCurrentPage(currentPage) {
   var pages = document.querySelectorAll('.page');
   for (var i = 0; i < pages.length; i++) {
     if (i === currentPage - 1) {
@@ -318,22 +418,25 @@ function showCurrentPage() {
 
 // Événement pour passer à la page suivante
 document.getElementById('nextPage').addEventListener('click', function () {
-  if (currentPage < totalPages && currentPage < pageMax) {
-    currentPage++;
-    showCurrentPage();
-  }
+  currentPage = loadCurrentPage();
+  pageMax = loadPageMax();
+  console.log("nextPage");
+
+  goToNextPage();
+  
 });
 
 // Événement pour revenir à la page précédente
 document.getElementById('prevPage').addEventListener('click', function () {
-  if (currentPage > 1) {
-    currentPage--;
-    showCurrentPage();
-  }
+  currentPage = loadCurrentPage();
+  console.log("prevPage");
+
+  goToPreviousPage();
+
 });
 
 // Afficher la première page lors du chargement initial
-showCurrentPage();
+showCurrentPage(loadCurrentPage());
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SCRIPT qui vérifie si les conditions de réponses aux questions sont remplies au chargerment de la page //
