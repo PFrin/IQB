@@ -948,9 +948,13 @@
         $('#' + modal).modal('hide');
     }
 
-    function MesFormulaires():
-        console.log('MesFormulaires')
-        //redirectUrl = '/' + loginCust.idCustomer:
+    function MesFormulaires(){
+        console.log('MesFormulaires');
+        redirectUrl = '/' + loginCust;
+        document.location.href = redirectUrl;
+
+    }
+
 
 </script>
 {% endblock %}
