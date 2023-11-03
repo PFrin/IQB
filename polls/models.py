@@ -279,7 +279,6 @@ class Question(models.Model):
         else :
             self.delete()
 
-
         # Décaler les ordres des questions suivantes de -1
         questions_to_update = self.page.question_set.filter(order__gt=self.order)
         for q in questions_to_update:
