@@ -168,7 +168,7 @@ def QuestionView(request,loginCust,idForm):
       id_Question = request.POST.get('idQuestion')
       id_Answer = request.POST.get('idAnswer')
       object_Question = Question.objects.get(idQuestion=id_Question)
-      if id_Answer is not None:
+      if not id_Answer:
         object_answer = Answer.objects.get(idAnswer=id_Answer)
 
         if btn == 'Supprimer':
@@ -184,7 +184,6 @@ def QuestionView(request,loginCust,idForm):
       # Ajouter réponse
       # Suprimer supprimer
       # lier la réponse a des questions
-      pass
     if action == "question_form":
       # Ajouter question
       # Suprimer Question
