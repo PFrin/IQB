@@ -34,12 +34,12 @@
         } 
         function repondre(myCustomer,formId){
             var redirectUrl = '/' + myCustomer + '/form/' + formId.toString() + '/';
-            document.location.href = redirectUrl;
+            window.open(redirectUrl, '_blank');
         }
         function preview(myCustomer,formId){
             console.log(formId);
             var redirectUrl = '/' + myCustomer + '/form/' + formId.toString() + '/?preview=true';
-            document.location.href = redirectUrl;
+            window.open(redirectUrl, '_blank');
         }
         function removeForm(myCustomer,formId) {
             console.log(formId);
@@ -147,7 +147,7 @@
                             </div>
                             <div class="card-footer">
                                 <button onclick="removeForm('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
-                                    <i class="fas fa-edit"></i> supprimer le formulaire
+                                    <i class="fas fa-edit"></i> Supprimer le formulaire
                                 </button>
                                 <button onclick="editForm('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
                                     <i class="fas fa-edit"></i> Modifier le formulaire
@@ -173,4 +173,71 @@
             </main>
         </div>
     </div>
+    <!-- Modal pour demander la validation de l'action -->
+    <div class="modal fade" id="validationPublish" tabindex="-1" aria-labelledby="validationLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="validationLabel">Validation publication</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Voulez-vous vraiment publier le formulaire ?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Non</button>
+                    <button type="button" class="btn btn-primary" id="btnValiderPublication">Oui</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('flexSwitchCheckDefault').addEventListener('change', function () {
+            // Check if the checkbox is checked
+            if (this.checked) {
+                // If checked, show the validation modal
+                showValidationModal();
+            }
+        });
+
+        function showValidationModal() {
+            $('#validationPublish').modal('show');
+        }
+
+        //si btn non ou fenetre modal fermer avec la croix alors on décocher "IsOnline"
+        $('#validationPublish').on('hidden.bs.modal', function (e) {
+            document.getElementById('flexSwitchCheckDefault').checked = false;
+        });
+    
+
+        //publier le formulaire
+        document.getElementById('btnValiderPublication').addEventListener('click',function() {
+            console.log('Publication du formulaire');
+            data = {
+                action: "publier",
+                id : idForm
+            };
+
+            $.ajax({
+                type: 'POST', 
+                url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                data: data,
+                success: function(response) {
+                    // Gérez la réponse du serveur en cas de succès
+                    console.log('Mise à jour réussie');
+                    var redirectUrl = '/' + loginCust.idCustomer + '/form/' + idForm.toString() + '/?preview=true';
+                    document.location.href = redirectUrl;
+                },
+                error: function(error) {
+                    // Gérez les erreurs de la requête AJAX
+                    console.error('Erreur lors de la mise à jour', error);
+    
+                    // Récupérez la valeur d'origine et rétablissez-la
+                    const originalValue = element.getAttribute('data-original-value');
+                    element.textContent = originalValue;
+                }
+            });
+        });
+    
+    </script>
 {% endblock %}
