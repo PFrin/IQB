@@ -39,6 +39,7 @@ urlpatterns = [
     path('register/',views.register_view, name='register'),
     path("admin/", admin.site.urls),
     path('end/', views.end, name='end'),
+
     
     #test et debug
     

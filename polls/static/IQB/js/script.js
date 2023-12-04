@@ -34,8 +34,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
             // Créez l'objet de données à envoyer dans la requête
             const data = {
-                id: id,
-                value: value
+              id: id,
+              value: value
             };
             console.log(data);
             // Effectuez une requête AJAX avec jQuery
@@ -58,9 +58,6 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         });
     });
-
-
-    
 });
 
 
