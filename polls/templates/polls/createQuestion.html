@@ -50,7 +50,8 @@
             //var redirectUrl = '/' + myCustomer + '/form/' + formId.toString() + '/?preview=true';
             var redirectUrl = '/' + myCustomer + '/form/' + formId + '/?preview=true';
             console.log(redirectUrl);
-            document.location.href = redirectUrl;
+            //document.location.href = redirectUrl;
+            window.open(redirectUrl, '_blank');
         }
     </script>
    
@@ -464,6 +465,9 @@
     const loginCust = "{{ CurrentloginCust }}";
     const idForm    = "{{ myForm.idForm }}";
 
+    console.log("loginCust : " + loginCust);
+    console.log("idForm : " + idForm);
+
     //////////////////
     //   form_page  // ✓
     //////////////////
@@ -848,7 +852,8 @@
                     // Gérez la réponse du serveur en cas de succès
                     console.log('Mise à jour réussie');
                     var redirectUrl = '/' + loginCust.idCustomer + '/form/' + idForm.toString() + '/?preview=true';
-                    document.location.href = redirectUrl;
+                    //document.location.href = redirectUrl;
+                    window.open(redirectUrl, '_blank');
                 },
                 error: function(error) {
                     // Gérez les erreurs de la requête AJAX
@@ -947,13 +952,6 @@
             }
         });
         $('#' + modal).modal('hide');
-    }
-
-    function MesFormulaires(){
-        console.log('MesFormulaires');
-        redirectUrl = '/' + loginCust;
-        document.location.href = redirectUrl;
-
     }
 
 
