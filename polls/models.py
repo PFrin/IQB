@@ -85,9 +85,9 @@ class Form(models.Model):
     lastModifiedDate = models.DateTimeField(auto_now=True)      # date de la derniere modification de l'objet
     isOnline         = models.BooleanField(default=False)
     Customer         = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    css_file         = models.FileField(upload_to='custom_styles/', blank=True, null=False, default=STATIC_URL_STYLE + 'default.css')
-
-
+    #css_file         = models.FileField(blank=True, null=False, default=STATIC_URL_STYLE + 'default.css')
+    logo_path        = models.CharField(max_length=100, blank=True, null=False)
+    
     def publish(self):
         self.MEPDate = date.today()
         self.isOnline = True
