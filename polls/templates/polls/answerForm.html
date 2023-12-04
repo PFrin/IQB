@@ -1,8 +1,14 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+  <meta name="csrf-token" content="{{ csrf_token }}">
   <title>Answer Form</title>
-  <link rel="stylesheet" type="text/css" href="{{ myForm.css_file.url }}">
+
+  <link rel="stylesheet" type="text/css" href="{% static 'IQB/css/' %}{{ myForm.idForm }}.css">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
   <style>
     body {
       background-color: #f0f0f0;
@@ -10,7 +16,6 @@
     }
 
     .content {
-      background-color: #fff;
       margin: 0 auto;
       padding: 20px;
       max-width: 800px;
@@ -50,6 +55,12 @@
       max-width: 800px;
       position: relative;
     }
+    .modal-contente {
+      background-color: #ffffff;
+      margin: 0 auto;
+      padding: 20px;
+      max-width: 800px;
+    }
 
     .close {
       position: absolute;
@@ -80,12 +91,55 @@
       float: right;
       margin-right: 80px;
     }
+    
   </style>
+  <!-- depot img-->
+  <style>
+  /* Ajoutez ces styles dans votre feuille de style CSS pour styliser la zone de dépôt d'image */
+  .drop-zone {
+    max-width: 200px;
+    margin: auto;
+    border: 2px dashed #ccc;
+    padding: 20px;
+    cursor: pointer;
+  }
+
+  #drop-zone__prompt {
+    text-align: center;
+  }
+</style>
+<style>
+  .image-preview-container {
+    max-width: 150px; /* Changer la largeur maximale selon vos besoins */
+    max-height: 100px; /* Changer la hauteur maximale selon vos besoins */
+    overflow: hidden;
+  }
+
+  .image-preview {
+    width: 100%;
+    height: auto;
+  }
+</style>
+
 </head>
 <body>
   <div class="content">
+    <img id='logo' src="{% static myForm.logo_path %}" alt="logo" style="width: 100px; height: 100px;">
     <h1>{{ myForm.titleForm }}</h1>
 
+    <!--
+          <div id="introductionPage">
+      <h2>Bienvenue sur le formulaire</h2>
+      <p>{{ myForm.introText }}</p>
+      <button id="startFormButton">Commencer le formulaire</button>
+    </div>
+    -->
+
+      <div class="page">
+        <h2>Bonjour</h2>
+        <h3>Introduction</h3>
+        <p>{{ myForm.introText }}</p>
+      </div>
     {% for page in myPages %}
       <div class="page">
         <h2>Page {{ page.number }}</h2>
@@ -140,7 +194,7 @@
 
     <!-- Ajoutez ces éléments HTML à la fin de votre document body -->
     <div id="pagination" style="text-align: center; margin-bottom: 10px">
-      <button id="prevPage" disabled>Page précédente</button>
+      <button id="prevPage">Page précédente</button>
       <button id="nextPage">Page suivante</button>
       {% if pageMax == totalPages %}
         <input  id="submitForm" type="submit" value="Envoyer le Formulaire" onclick='theEnd();'>
@@ -152,96 +206,104 @@
   </div>
   <hr>
 
-
   <!-- Fenêtre modale -->
   <div id="modal" class="modal">
     <div class="modal-content">
       <span class="close" id="closeModalButton">&times;</span>
-      <div class="content">
+      <div class="modal-contente">
         <h1>{{ myForm.titleForm }}</h1>
 
         <!-- Formulaire de personnalisation du style -->
         <h2>Personnaliser le Style</h2>
-        <label for="backgroundColor">Couleur de Fond :</label>
-        <input type="color" id="backgroundColor" name="backgroundColor">
-        <label for="fontFamily">Police de Caractères :</label>
-        <select id="fontFamily" name="fontFamily">
-          <option value="Arial, sans-serif">Arial</option>
-          <option value="Times New Roman, serif">Times New Roman</option>
-          <option value="Verdana, sans-serif">Verdana</option>
-          <!-- Ajoutez d'autres options de police ici -->
-        </select>
-        <label for="textColor">Couleur du Texte :</label>
-        <input type="color" id="textColor" name="textColor">
-        <!-- Ajoutez d'autres options de personnalisation ici -->
-        <button id="applyStyleButton">Appliquer le Style</button>
-        <button id="resetStyleButton">Réinitialiser le Style</button>
-        <!-- Fin du formulaire de personnalisation -->
+        
+          <div class="mb-3">
+            <label for="styleFile">Copier le style d'un formulaire existant :</label>
+            <select id="styleFileSelect" name="styleFileSelect">
+              <!-- Options seront ajoutées dynamiquement avec JavaScript -->
+            </select>
+            <button id="loadStyleButton">Copier le Style</button>
+          </div>
+          <div class="mb-3">
+            <label for="backgroundColor">Couleur de Fond :</label>
+            <input type="color" id="backgroundColor" name="backgroundColor">
+          </div>
+          <div class="mb-3">
+            <label for="backgroundsFormColor">Couleur de Fond du formulaire :</label>
+            <input type="color" id="backgroundFormColor" name="backgroundColor">
+          </div>
+          <div class="mb-3">
+            <label for="fontFamily">Police de Caractères :</label>
+            <select id="fontFamily" name="fontFamily">
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="Times New Roman, serif">Times New Roman</option>
+              <option value="Verdana, sans-serif">Verdana</option>
+              <!-- Ajoutez d'autres options de police ici -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="textColor">Couleur du Texte :</label>
+            <input type="color" id="textColor" name="textColor">
+          </div>
+        <form id="FormStyle">
+          <div class="mb-3">
+            <label for="profileImageInput" class="form-label">Logo du profil (glisser-déposer)</label>
+            <div id="dropZone" class="drop-zone">
+              <span id="drop-zone__prompt">Glissez et déposez votre image ici ou cliquez pour sélectionner</span>
+              <!-- Aperçu de l'image sélectionnée -->
+              <div id="imagePreviewContainer" class="image-preview-container">
+                <img id="imagePreview" class="image-preview" src="" alt="Aperçu de l'image">
+              </div>
+              <input type="file" class="Logo" id="profileImageInput" accept="image/*" style="display: none;">
+            </div>          
+          </div>
+          <!-- Ajoutez d'autres options de personnalisation ici -->
+          <button id="applyStyleButton">Appliquer le Style</button>
+          <button id="resetStyleButton">Réinitialiser le Style</button>
+          <!-- Fin du formulaire de personnalisation -->
+        </form>
       </div>
     </div>
   </div>
-
   <button id="openModalButton">Ouvrir le Formulaire</button>
-
+  {% if myForm.isOnline %}
+    <script>
+      document.getElementById("openModalButton").style.display = "none";
+    </script>
+  {% else %}
+    <script>
+      //si mode preview il y a l'argument "preview" en GET ne pas afficher le btn "ouvrir le formulaire"
+      var url_string = window.location.href;
+      var url = new URL(url_string);
+      var preview = url.searchParams.get("preview");
+      document.getElementById("openModalButton").style.display = "none";
+      if (preview == "true") {
+        document.getElementById("openModalButton").style.display = "block";
+      }
+</script>
+  {% endif %}
 </body>
 </html>
 <!-- ... Votre HTML ... -->
-<!-- SCRIPT pour gérer l'ouverture et la fermeture de la fenêtre modale et appliquer le style -->
-<script>
-  var openModalButton = document.getElementById('openModalButton');
-  var closeModalButton = document.getElementById('closeModalButton');
-  var modal = document.getElementById('modal');
-  var applyStyleButton = document.getElementById('applyStyleButton');
-
-  openModalButton.addEventListener('click', function () {
-    modal.style.display = 'block';
-  });
-
-  closeModalButton.addEventListener('click', function () {
-    modal.style.display = 'none';
-  });
-
-  applyStyleButton.addEventListener('click', function () {
-    var backgroundColor = document.getElementById('backgroundColor').value;
-    var fontFamily = document.getElementById('fontFamily').value;
-    var textColor = document.getElementById('textColor').value;
-
-    var styleCSS = `body {
-      background-color: ${backgroundColor};
-      font-family: ${fontFamily};
-      color: ${textColor};
-    }`;
-
-    // Créer un élément <style> dynamique et injecter le style CSS
-    var styleElement = document.createElement('style');
-    styleElement.innerHTML = styleCSS;
-    document.head.appendChild(styleElement);
-
-    // Fermer la fenêtre modale
-    modal.style.display = 'none';
-  });
-
-  data =  null; //fichier de style
-
-</script>
+<script src="{% static 'IQB/js/style.js' %}"></script>
 
 
 <!-- SCRIPT qui vérifie si le bouton submit d'une page rempli la condition de réponses aux questions -->
 <script>
+  const loginCust = "{{ loginCust }}";
+  const formId = '{{ myForm.idForm }}';
 
-// Récupérer l'ID du formulaire
-const formId = '{{ myForm.idForm }}';
-const totalPages = {{ myPages|length }} +1; // Le nombre total de pages de votre formulaire
+const totalPages = {{ myPages|length }} +2; // Le nombre total de pages de votre formulaire + 2 (introduction et conclusion)
 var curentPage = loadCurrentPage();
 var pageMax = loadPageMax();
 
+console.log("totalPages : ");
+console.log(totalPages);
 console.log("curentPage : ");
 console.log(curentPage);
 console.log("pageMax : ");
 console.log(pageMax);
 function saveCurrentPage(pageNumber) {
   sessionStorage.setItem(`${formId}_currentPage`, pageNumber);
-  print
 }
 function savePageMax(pageMax) {
   console.log("savePageMax : "+pageMax);
@@ -257,8 +319,8 @@ function loadPageMax() {
     }
     return parseInt(pageMax);
   }
-  savePageMax(1);
-  return 1; // Valeur par défaut pour la première page
+  savePageMax(2);
+  return 2; // Valeur par défaut pour la première page
 }
 
 // Fonction pour charger la page actuelle à partir de la session
@@ -387,6 +449,7 @@ forms.forEach((form, index) => {
 
 // Événement pour afficher la page actuelle
 function showCurrentPage(currentPage) {
+  var CurrentPageMax = loadPageMax();
   var pages = document.querySelectorAll('.page');
   for (var i = 0; i < pages.length; i++) {
     if (i === currentPage - 1) {
@@ -401,11 +464,16 @@ function showCurrentPage(currentPage) {
   var nextButton = document.getElementById('nextPage');
   var submitButton = document.getElementById('submitForm');
 
-  if (currentPage === 1) {
-    prevButton.disabled = true;
-  } else {
+  console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaa");
+  console.log("currentPage : "+currentPage);
+  if (currentPage == 1) {
+    prevButton.style.display = 'none';
+  }
+  else{
+    prevButton.style.display = 'block';
     prevButton.disabled = false;
   }
+
 
   if (currentPage === totalPages) {
     nextButton.style.display = 'none';
@@ -434,7 +502,17 @@ document.getElementById('prevPage').addEventListener('click', function () {
   goToPreviousPage();
 
 });
-
+/*
+var pages = document.querySelectorAll('.page');
+for (var i = 0; i < pages.length; i++) {
+    pages[i].style.display = 'none';
+  }
+//Afficher l'introduction avant la premiere page pour le chargement initial
+document.getElementById('startFormButton').addEventListener('click', function () {
+  document.getElementById('introductionPage').style.display = 'none';
+  showCurrentPage(loadCurrentPage());
+});
+*/
 // Afficher la première page lors du chargement initial
 showCurrentPage(loadCurrentPage());
 
@@ -573,4 +651,3 @@ function theEnd() {
 }
 
 </script>
-
