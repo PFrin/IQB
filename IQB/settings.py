@@ -15,6 +15,9 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+MEDIA_URL = '/media/' #marche pas je crois
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -146,8 +149,18 @@ DATE_INPUT_FORMATS = ('%d/%m/%Y','%Y-%m-%d')
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+STATIC_ROOT  = os.path.join(BASE_DIR,'static')
+STATIC_POLLS1 = os.path.join(BASE_DIR,'polls')
+STATIC_POLLS2 = os.path.join(STATIC_POLLS1,'static')
+STATIC_POLLS3 = os.path.join(STATIC_POLLS2,'IQB')
+STATIC_POLLS4 = os.path.join(STATIC_POLLS3,'css')
+
 STATIC_URL = '/static/'
 STATIC_URL_STYLE = '/static/IQB/css/'
+STATIC_URL_LOGO = os.path.join(STATIC_ROOT,'IQB/images/marque/')
+
+STATIC_LOGO = os.path.join(STATIC_POLLS3,'images')
+STATIC_LOGO_PATH = os.path.join(STATIC_LOGO,'marque')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
