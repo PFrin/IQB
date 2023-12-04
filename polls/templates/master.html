@@ -17,6 +17,7 @@
     <link href="{% static 'IQB/css/style.css' %}" rel="stylesheet">
     <script src="{% static 'IQB/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'IQB/js/master.js' %}"></script>
 
 
     {% block styles %}
@@ -40,7 +41,7 @@
                 <a class="nav-link" href="#">Mes Formulaires</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#">Créer un formulaire</a>
+                <a class="nav-link" href="#" onclick="MesFormulaires()">Créer un formulaire </a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profilModal">
@@ -141,7 +142,6 @@
 
     </footer>
 
-
     </body>
     </html>
-    
+
