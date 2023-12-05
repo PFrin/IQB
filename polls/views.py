@@ -1,4 +1,5 @@
 from imaplib import _Authenticator
+import os
 from django import forms
 import json
 from django.shortcuts import redirect, render
@@ -11,6 +12,7 @@ from django.shortcuts import render, redirect
 
 from django.http import Http404, HttpResponse
 from django.template import loader
+from IQB import settings
 from polls.models import Customer
 from .models import *
 from .models import Customer, Form, Question, Answer, Participant, ParticipantAnswer
@@ -23,6 +25,9 @@ from django.template import loader
 from .models import Customer, Form
 from django.http import JsonResponse
 from django.core import serializers
+import base64
+from django.core.files.base import ContentFile
+from django.http import JsonResponse
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 
@@ -168,15 +173,13 @@ def QuestionView(request,loginCust,idForm):
       id_Question = request.POST.get('idQuestion')
       id_Answer = request.POST.get('idAnswer')
       object_Question = Question.objects.get(idQuestion=id_Question)
-      if not id_Answer:
+      if id_Answer is not None:
         object_answer = Answer.objects.get(idAnswer=id_Answer)
 
         if btn == 'Supprimer':
           print("Supprimer")
           #vérifier si la réponse est lié a une question
           object_answer.delete_answer()
-        elif btn == 'Lier':
-          pass
       elif btn == 'Ajouter':
         print("ajouter")
         object_Question.add_answer()
@@ -658,9 +661,9 @@ def reponse(request, username, idForm):
   
   myPages = Page.objects.filter(Form=myForm).order_by('number')
   my_dependencies = list(QuestionDependency.objects.filter(dependent_question__page__Form=myForm))
-  print("my_dependencies : ", my_dependencies)
+  #print("my_dependencies : ", my_dependencies)
   my_dependencies_serialized = json.dumps([str(dep) for dep in my_dependencies])
-  print(my_dependencies_serialized)
+  #print(my_dependencies_serialized)
   #vérifier si le formulaire existe
 
   #vérifier preview
@@ -672,6 +675,40 @@ def reponse(request, username, idForm):
     if preview_param == 'true':
       preview_doc = True
       print("Mode aperçu concepteur !")
+      
+      if 'styleCSS' in request.method:
+        print("début traitement STYLE")
+        style = request.POST['styleCSS']
+        print("style : ", style)
+
+        # créer un fichier CSS s'il n'existe pas
+        filename = idForm + '.css'
+        file_directory = os.path.join(settings.STATIC_ROOT, 'css')
+        #os.makedirs(file_directory, exist_ok=True)
+        print("file_directory : ", file_directory)
+
+        # modifier le contenu du fichier CSS
+        file_path = os.path.join(file_directory, filename)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(style)
+
+        if 'base64Image' in request.method:
+          print("début traitement STYLE")
+          base64_image = request.POST['image']
+
+          # Décodez la chaîne base64 en données binaires
+          image_data = base64.b64decode(base64_image.split(',')[1])
+          print(settings.STATIC_LOGO_PATH)
+
+          # Enregistrez l'image dans un fichier
+          with open(settings.STATIC_LOGO_PATH, 'wb') as f:
+            f.write(image_data)
+
+          return JsonResponse({'message': 'Image enregistrée avec succès.'})
+        return JsonResponse({'message': 'style enregistrée avec succès.'})
+    
+      
+      
     else:
       
       preview_doc = False
