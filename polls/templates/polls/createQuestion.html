@@ -151,6 +151,7 @@
 
                                                 </div>
                                                 <div class="card-footer d-flex justify-content-between align-items-center">
+                                                    <!--
                                                     <div class="form-check">
                                                         {% if question.question.type.typeQuestion == 'choix multiple' %}
                                                         <p class="nbrAnswerMin questionParameter">Nombre de réponse minimum :</p>
@@ -158,7 +159,8 @@
                                                         <p class="nbrAnswerMax questionParameter">Nombre de réponse maximum :</p>
                                                         <input type="number" name="nbrAnswerMaxInput" min="1" value="{{ question.question.nbrAnswerMax }}" >
                                                         {% endif %}
-                                                      </div>
+                                                    </div>
+                                                    -->
                                                     <div class="response-info">
                                                         <input id="{{ question.question.idQuestion }}" class="form-check-input questionParameter" name="isObligatory" type="checkbox" {% if question.question.isObligatory %}checked{% endif %}>
                                                         <label class="form-check-label">Est obligatoire</label>
