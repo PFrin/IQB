@@ -625,6 +625,7 @@ def preview_reponse(request, idForm):
   print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Mode aperçu concepteur !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
   return reponse(request, None, idForm)
 
+@csrf_exempt
 def reponse(request, username, idForm):
   #del request.session['form_data']
   
@@ -676,36 +677,46 @@ def reponse(request, username, idForm):
       preview_doc = True
       print("Mode aperçu concepteur !")
       
-      if 'styleCSS' in request.method:
-        print("début traitement STYLE")
+      if 'styleCSS' in request.POST:
+        print("Début traitement STYLE")
         style = request.POST['styleCSS']
-        print("style : ", style)
+        print("Style : ", style)
 
-        # créer un fichier CSS s'il n'existe pas
+        # Créer un fichier CSS s'il n'existe pas
         filename = idForm + '.css'
-        file_directory = os.path.join(settings.STATIC_ROOT, 'css')
-        #os.makedirs(file_directory, exist_ok=True)
-        print("file_directory : ", file_directory)
+        file_directory = settings.STATIC_POLLS4
+        try:
+          os.makedirs(file_directory, exist_ok=True)
+        except OSError as e:
+          print("Erreur lors de la création du dossier CSS :", e)
 
-        # modifier le contenu du fichier CSS
+        print("File directory : ", file_directory)
+
+        # Modifier le contenu du fichier CSS
         file_path = os.path.join(file_directory, filename)
         with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(style)
+          f.write(style)
 
-        if 'base64Image' in request.method:
-          print("début traitement STYLE")
+        if 'image' in request.POST:
+          print("Début traitement IMAGE")
           base64_image = request.POST['image']
 
           # Décodez la chaîne base64 en données binaires
           image_data = base64.b64decode(base64_image.split(',')[1])
-          print(settings.STATIC_LOGO_PATH)
 
           # Enregistrez l'image dans un fichier
-          with open(settings.STATIC_LOGO_PATH, 'wb') as f:
+          logo_path = settings.STATIC_LOGO_PATH + '/' + idForm + '.png'
+          print("......................................................")
+          print(logo_path)
+          with open(logo_path, 'wb') as f:
             f.write(image_data)
+            
+          myForm.logo_path = logo_path
+          myForm.save()
 
-          return JsonResponse({'message': 'Image enregistrée avec succès.'})
-        return JsonResponse({'message': 'style enregistrée avec succès.'})
+          return JsonResponse({'message': 'Image enregistrée avec succès.', 'logo_path': logo_path})
+
+        return JsonResponse({'message': 'Style enregistré avec succès.'})
     
       
       

@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
         success: function(response) {
           console.log('Image envoyée avec succès !');
           console.log(response);
-          console.log(response.media);
+          console.log(response.logo_path);
           
           
         },
@@ -164,6 +164,22 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log(xhr);
     xhr.send();
   });
+
+    // Ajoutez un gestionnaire d'événements pour le bouton "Réinitialiser le Style"
+    document.getElementById('resetStyleButton').addEventListener('click', function () {
+      // Charger le fichier CSS 'default.css'
+      var xhrDefault = new XMLHttpRequest();
+      xhrDefault.onreadystatechange = function () {
+        if (xhrDefault.readyState == 4 && xhrDefault.status == 200) {
+          var defaultStyleContent = xhrDefault.responseText;
+  
+          // Appliquer les valeurs par défaut aux champs correspondants
+          applyStyleValues(defaultStyleContent);
+        }
+      };
+      xhrDefault.open('GET', '../../../static/IQB/css/default.css', true);
+      xhrDefault.send();
+    });
 
 
   function applyStyleValues(styleContent) {

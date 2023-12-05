@@ -10,10 +10,6 @@
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
   <style>
-    body {
-      background-color: #f0f0f0;
-      font-family: Arial, sans-serif;
-    }
 
     .content {
       margin: 0 auto;
@@ -149,7 +145,7 @@
           {% for question in all_questions %}
             {% if question.page == page %}
               <section id="{{ question.idQuestion }}" class="question-section">
-                <h3 class="{% if question.isObligatory %}obligatory{% endif %}">{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
+                <h3 class="{% if question.isObligatory %}obligatory{% endif %}" data-type="{{ question.type.typeQuestion }}">{{ question.title }}{% if question.isObligatory %}*{% endif %}</h3>
             
                 {% if question.type.typeQuestion == 'question ouverte' %}
                   <textarea name="{{ question.idQuestion }}" class="form-control"></textarea>
@@ -285,14 +281,16 @@
 </html>
 <!-- ... Votre HTML ... -->
 <script src="{% static 'IQB/js/style.js' %}"></script>
+<script src="{% static 'IQB/js/answerForm.js' %}"></script>
+
 
 
 <!-- SCRIPT qui vérifie si le bouton submit d'une page rempli la condition de réponses aux questions -->
 <script>
   const loginCust = "{{ loginCust }}";
   const formId = '{{ myForm.idForm }}';
+  const totalPages = {{ myPages|length }} +2; // Le nombre total de pages de votre formulaire + 2 (introduction et conclusion)
 
-const totalPages = {{ myPages|length }} +2; // Le nombre total de pages de votre formulaire + 2 (introduction et conclusion)
 var curentPage = loadCurrentPage();
 var pageMax = loadPageMax();
 
@@ -355,7 +353,9 @@ function goToNextPage() {
   }
 }
 
+
 // Fonction pour gérer la navigation vers la page précédente
+
 function goToPreviousPage() {
   var currentPage = loadCurrentPage();
   if (currentPage > 1) {
@@ -367,6 +367,7 @@ function goToPreviousPage() {
     showCurrentPage(currentPage);
   }
 }
+
   // Sélectionnez tous les formulaires sur la page
 const forms = document.querySelectorAll('form');
 
@@ -374,82 +375,78 @@ const forms = document.querySelectorAll('form');
 // Parcourez chaque formulaire
 forms.forEach((form, index) => {
   form.addEventListener('submit', function (event) {
-    event.preventDefault();
+      event.preventDefault();
 
-    // Récupérez toutes les questions de ce formulaire
-    //const requiredQuestions = form.querySelectorAll('h3');
-    // garder les questions obligatoires seulement 
-    const requiredQuestions = form.querySelectorAll('h3.obligatory');
-    //afficher le nombre de questions obligatoires
-    console.log("nombre de questions obligatoires : ");
-    console.log(requiredQuestions.length);
+      // Récupérez toutes les questions de ce formulaire
+      const requiredQuestions = form.querySelectorAll('h3.obligatory');
 
+      // Vérifiez si au moins une réponse a été fournie pour chaque question obligatoire
+      var allQuestionsAnswered = true;
 
-    // Vérifiez si toutes les questions obligatoires ont été répondues
-    let allQuestionsAnswered = true;
+      requiredQuestions.forEach((question, questionIndex) => {
+          const questionType = question.getAttribute('data-type');
+          var questionAnswered = false;
+          console.log("questionType : "+questionType);
 
-    requiredQuestions.forEach((question, questionIndex) => {
-      // Vérifiez le type de question (textarea, input radio, input checkbox, etc.)
-      const questionType = question.nextElementSibling.nodeName.toLowerCase();
+          if (questionType === 'question-ouverte') {
+              const textarea = form.querySelector(`textarea[name="${question.getAttribute('id')}"]`);
+              
+              if (textarea.value.trim() !== '') {
+                  questionAnswered = true;
+              }
+          } else {
+              const inputType = questionType === 'choix multiple' ? 'checkbox' : 'radio';
+              const inputs = form.querySelectorAll(`input[name="${question.getAttribute('id')}"][type="${inputType}"]:checked`);
+              if (inputs.length > 0) {
+                  questionAnswered = true;
+              }
+          }
 
-      if (questionType === 'textarea') {
-        // Pour les zones de texte, vérifiez si elles ne sont pas vides
-        if (question.nextElementSibling.value.trim() === '') {
-          allQuestionsAnswered = false;
-        }
-      } else if (questionType === 'input') {
-        const inputType = question.nextElementSibling.getAttribute('type');
+          // Nouvelle vérification pour les questions de type radio et checkbox
+          if (questionType === 'choix-multiple' || questionType === 'choix-simple') {
+            const inputs = form.querySelectorAll(`input[name="${question.getAttribute('id')}"][type="${inputType}"]`);
+            console.log("inputs : ");
+            console.log(inputs);
         
-        if (inputType === 'radio') {
-          // Pour les boutons radio, vérifiez s'il y a une option sélectionnée
-          const radioButtons = form.querySelectorAll(`[class="${question.nextElementSibling.getAttribute('class')}"]:checked`);
-          if (radioButtons.length === 0) {
-            allQuestionsAnswered = false;
-          }
-        } else if (inputType === 'checkbox') {
-          // Pour les cases à cocher, vérifiez si au moins une est cochée
-          const checkboxes = form.querySelectorAll(`[class="${question.nextElementSibling.getAttribute('class')}"]:checked`);
-          if (checkboxes.length === 0) {
-            allQuestionsAnswered = false;
-          }
+            // Utilisez la méthode Array.some pour vérifier si au moins une réponse est cochée
+            if (Array.from(inputs).some(input => input.checked)) {
+                questionAnswered = true;
+            }
         }
+
+          // Si au moins une réponse a été donnée pour cette question obligatoire, mettez à jour la variable
+          if (!questionAnswered) {
+              allQuestionsAnswered = false;
+          }
+      });
+
+      // Si au moins une réponse a été fournie pour chaque question obligatoire, soumettez le formulaire
+      if (allQuestionsAnswered) {
+          form.submit();
+          // Charger currentPage et pageMax
+          currentPage = loadCurrentPage();
+          pageMax = loadPageMax();
+          // Si currentPage = pageMax, on incrémente pageMax
+          savePageMax(pageMax + 1);
+          goToNextPage();
+      } else {
+          // Sinon, affichez un message d'erreur
+          alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
       }
-    });
-    console.log("good ? ");
-    console.log(allQuestionsAnswered); 
-    max = loadPageMax();
-    max = max + 1;
-    savePageMax(max);
-    console.log("pageaxxxxxxxxx"+loadPageMax());
-    // Si toutes les questions obligatoires ont été répondues, soumettez le formulaire
-    if (allQuestionsAnswered) {
-      form.submit();
-      console.log("submit");
-
-      //charger currentPage et pageMax
-      currentPage = loadCurrentPage();
-      pageMax = loadPageMax();
-
-      //si currentPage = pageMax, on incremente pageMax
-      savePageMax(pageMax++);
-      goToNextPage();
-
-    } else {
-      // Sinon, affichez un message d'erreur ou effectuez une autre action appropriée
-      alert(`Veuillez répondre à toutes les questions obligatoires du formulaire ${index + 1}.`);
-    }
   });
 });
+
+
+
 
 //////////////////////////////////////////
 // SCRIPT qui gere l'afichage des pages //
 //////////////////////////////////////////
 
 
-
+/*
 // Événement pour afficher la page actuelle
 function showCurrentPage(currentPage) {
-  var CurrentPageMax = loadPageMax();
   var pages = document.querySelectorAll('.page');
   for (var i = 0; i < pages.length; i++) {
     if (i === currentPage - 1) {
@@ -459,6 +456,7 @@ function showCurrentPage(currentPage) {
     }
   }
 
+  
   // Gérer l'affichage des boutons "Page précédente" et "Page suivante"
   var prevButton = document.getElementById('prevPage');
   var nextButton = document.getElementById('nextPage');
@@ -483,6 +481,7 @@ function showCurrentPage(currentPage) {
     submitButton.style.display = 'none';
   }
 }
+*/
 
 // Événement pour passer à la page suivante
 document.getElementById('nextPage').addEventListener('click', function () {
@@ -491,7 +490,6 @@ document.getElementById('nextPage').addEventListener('click', function () {
   console.log("nextPage");
 
   goToNextPage();
-  
 });
 
 // Événement pour revenir à la page précédente
@@ -502,6 +500,7 @@ document.getElementById('prevPage').addEventListener('click', function () {
   goToPreviousPage();
 
 });
+
 /*
 var pages = document.querySelectorAll('.page');
 for (var i = 0; i < pages.length; i++) {
