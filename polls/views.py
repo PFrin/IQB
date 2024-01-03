@@ -286,7 +286,7 @@ def QuestionView(request,loginCust,idForm):
           liste_answer = question["listeAnswer"]
           #afficher l'id des answer et si elles sont checked ou non
           CurrentQuestion = Question.objects.get(idQuestion=id_element)
-          CurrentQuestion.dependency_formul = "R1Q1"
+          CurrentQuestion.dependency_formul = "Q1R1"
           CurrentQuestion.save()
 
     return JsonResponse({"success": True})

@@ -289,8 +289,8 @@
 <script>
   const loginCust = "{{ loginCust }}";
   const form = "{{ myForm }}";
-  console.log("init");
-  console.log(form);
+  //console.log("init");
+  //console.log(form);
   const formId = '{{ myForm.idForm }}';
   const totalPages = {{ myPages|length }} +2; // Le nombre total de pages de votre formulaire + 2 (introduction et conclusion)
 
@@ -442,8 +442,8 @@ forms.forEach((form, index) => {
           alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
           //goToNextPage();
       } else {
-          // Sinon, affichez un message d'erreur
-          alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
+        // Sinon, affichez un message d'erreur
+        alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
       }
   });
 });
@@ -546,7 +546,7 @@ function onPageLoad() {
   
 
   // Récupération des dépendances depuis le modèle de données
-  questionReponses = {};
+  //questionReponses = {};
 /*
   // Création du dictionnaire question-réponses
   myDependencies.forEach(function(dependency) {
@@ -565,20 +565,28 @@ function onPageLoad() {
 
   //alternative
   for (var question in myDependencies) {
-    var formule = myDependencies[question]
+    console.log("======================================")
+    console.log("question : "+question);
+    var formule = myDependencies[question];
     var dependentQuestionElement = document.getElementById(question);
-  
-    if (updateQuestionsVisibilityComplex(formule)) {
+    //console.log(updateQuestionsVisibilityComplex("Q1R1"));
+
+    if (formule == ""){
       dependentQuestionElement.style.display = 'block';
-      console.log("Ne pas cacher la question : " + question);
-    } else {
-      dependentQuestionElement.style.display = 'none';
-      console.log("Cacher la question : " + question);
+      console.log("Ne pas cacher la question sans conditions : " + question);
+    }else
+      {if (updateQuestionsVisibilityComplex(formule)) {
+        dependentQuestionElement.style.display = 'block';
+        console.log("Ne pas cacher la question : " + question);
+      } else {
+        dependentQuestionElement.style.display = 'none';
+        console.log("Cacher la question : " + question);
+      }
     }
   }
   
 
-
+/*
   // Vérification des conditions de visibilité initiales
   for (var question in questionReponses) {
     var responses = questionReponses[question];
@@ -593,8 +601,9 @@ function onPageLoad() {
       // Supprimer les réponses (à implémenter si nécessaire)
     }
   }
+  */
 }
-
+/*
 function shouldShowQuestion(responses) {
   // Vérification si toutes les réponses associées à une question sont cochées
   for (var i = 0; i < responses.length; i++) {
@@ -605,8 +614,23 @@ function shouldShowQuestion(responses) {
   }
   return true;
 }
-
+*/
 // Réécriture de la partie de gestion des événements
+// Sélectionnez toutes les réponses de type checkbox et radio
+const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+const radios = document.querySelectorAll('input[type="radio"]');
+
+// Combine les listes de checkboxes et radios
+const allAnswers = [...checkboxes, ...radios];
+
+// Ajoutez un écouteur d'événements à chaque réponse
+allAnswers.forEach(answer => {
+  answer.addEventListener('change', function () {
+    // Mettez à jour la visibilité des questions dépendantes
+    onPageLoad();
+    console.log(answer)
+  });
+});
 /*
 (function() {
   var reponsesQuestions = {};
@@ -704,35 +728,51 @@ function updateQuestionsVisibilityComplex(formule) {
     const valeur = codeAnswerToID(match);
     return valeur !== undefined ? valeur : false;
   });
-
-  console.log("formule ____________________________________________________: "+formule);
-  console.log("eval(formule) : "+eval(formule));
+  console.log("formule : "+formule);
+  console.log("res"+eval(formule));
+ 
   return eval(formule);
   
 }
 
+//console.log("lstAnswerDepends");
+//lstAnswerDepends();
 function lstAnswerDepends(){ 
   //servira a mettre des linerter qur ces réponses
   console.log("lstAnswerDepends");
   const formule1 = 'Q1R1 ET Q1R2';
   const formule2 = 'Q1R2 ET Q2R2';
   const formule3 = 'Q1R3 ET Q6R2';
-  [
-  "abb87d9e-0dd0-4a96-a8ab-f25c882e6e35 -> c739fe12-7fb3-4f06-bd70-865730601387",
-  "abb87d9e-0dd0-4a96-a8ab-f25c882e6e35 -> b1b70dbb-ae45-4d85-aeb7-f45849e8ffef"
-  ]
+
+  Q1R1 = true;
+  Q1R2 = false;
+
+  formule = formule1.replace(/R[0-9]+Q[0-9]+/g, function(match) {
+    console.log("match : "+match);  
+    const valeur = codeAnswerToID(match);
+    return valeur !== undefined ? valeur : false;
+  });
+  console.log ("formule : "+formule);
+  res2 = updateQuestionsVisibilityComplex(formule2);
+  res3 = updateQuestionsVisibilityComplex(formule3);
+  console.log("res1 : "+res1);
+  console.log("res2 : "+res2);
+  console.log("res3 : "+res3);
+
+
 }
 
-
-
-codeAnswerToID("Q1R1");
 function codeAnswerToID(codeAnswer){
+  //console.log("codeAnswerToID");
+  console.log("codeAnswer : "+codeAnswer);
   //codeAnswer == Q+numéro question R+numéro réponse
-  numberQuestion = codeAnswer.split("R")[0].replace("Q","");
-  //console.log("numberQuestion : "+numberQuestion);
-  numberAnswer = codeAnswer.split("R")[1];
-  //console.log("numberAnswer : "+numberAnswer);
-  //retourner l'id de la réponse
+  // Extraire le numéro de réponse (après "R")
+  var numberAnswer = codeAnswer.split("R")[1];
+
+  // Extraire le numéro de question (après "Q")
+  var numberQuestion = codeAnswer.split("Q")[1].split("R")[0];
+  console.log("numberAnswer : "+numberAnswer);
+  console.log("numberQuestion : "+numberQuestion);
   var id = "";
 
 
@@ -741,14 +781,15 @@ function codeAnswerToID(codeAnswer){
   questionSelected = question[numberQuestion-1];
 
   //réponse élément de type input
-  var answer = questionSelected.getElementsByClassName("form-check-input");
-  id = answer[numberAnswer-1].value;
+  var answer = questionSelected.querySelectorAll('.form-check-input');
+  id = answer[numberAnswer].value;
+  console.log(answer[numberAnswer-1]);
   
-  //console.log("id : "+id);
-  //console.log("answer : ");
-  //console.log(answer[numberAnswer-1]);
-  //vérifier si la réponse est checed ou pas
-  if (answer[numberAnswer-1].checked == true) {
+  console.log("id : "+id);
+  console.log("answer : ");
+  console.log(answer[numberAnswer-1].checked);
+  //vérifier si la réponse est checked ou pas
+  if (answer[numberAnswer-1].checked) {
     console.log("checked super condition");
     return true;
   }
