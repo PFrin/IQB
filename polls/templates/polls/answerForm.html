@@ -288,6 +288,9 @@
 <!-- SCRIPT qui vérifie si le bouton submit d'une page rempli la condition de réponses aux questions -->
 <script>
   const loginCust = "{{ loginCust }}";
+  const form = "{{ myForm }}";
+  console.log("init");
+  console.log(form);
   const formId = '{{ myForm.idForm }}';
   const totalPages = {{ myPages|length }} +2; // Le nombre total de pages de votre formulaire + 2 (introduction et conclusion)
 
@@ -376,6 +379,14 @@ const forms = document.querySelectorAll('form');
 forms.forEach((form, index) => {
   form.addEventListener('submit', function (event) {
       event.preventDefault();
+      console.log("*");
+      console.log("**");
+      console.log("***");
+      console.log("****");
+      console.log("*****");
+      console.log("******");
+      console.log("*******");
+
 
       // Récupérez toutes les questions de ce formulaire
       const requiredQuestions = form.querySelectorAll('h3.obligatory');
@@ -388,7 +399,7 @@ forms.forEach((form, index) => {
           var questionAnswered = false;
           console.log("questionType : "+questionType);
 
-          if (questionType === 'question-ouverte') {
+          if (questionType === 'question ouverte') {
               const textarea = form.querySelector(`textarea[name="${question.getAttribute('id')}"]`);
               
               if (textarea.value.trim() !== '') {
@@ -403,13 +414,13 @@ forms.forEach((form, index) => {
           }
 
           // Nouvelle vérification pour les questions de type radio et checkbox
-          if (questionType === 'choix-multiple' || questionType === 'choix-simple') {
+          if (questionType === 'choix multiple' || questionType === 'Choix unique') {
             const inputs = form.querySelectorAll(`input[name="${question.getAttribute('id')}"][type="${inputType}"]`);
             console.log("inputs : ");
             console.log(inputs);
         
             // Utilisez la méthode Array.some pour vérifier si au moins une réponse est cochée
-            if (Array.from(inputs).some(input => input.checked)) {
+            if (Array.from(inputs).some(input => inputs.length)) {
                 questionAnswered = true;
             }
         }
@@ -428,7 +439,8 @@ forms.forEach((form, index) => {
           pageMax = loadPageMax();
           // Si currentPage = pageMax, on incrémente pageMax
           savePageMax(pageMax + 1);
-          goToNextPage();
+          alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
+          //goToNextPage();
       } else {
           // Sinon, affichez un message d'erreur
           alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
@@ -519,19 +531,26 @@ showCurrentPage(loadCurrentPage());
 // SCRIPT qui vérifie si les conditions de réponses aux questions sont remplies au chargerment de la page //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var myDependencies = {{ myDependencies|safe }};
-var questionReponses = {};
+console.log("myDependencies : ");
+console.log(myDependencies);
+
+
+
 
 // Chargement initial lorsque la page est entièrement chargée
 document.addEventListener("DOMContentLoaded", onPageLoad);
 
 function onPageLoad() {
   console.log("<----------onPageLoad---------->");
+  //afficcher toutes les clés du dictionnaire myDependencies
+  
 
   // Récupération des dépendances depuis le modèle de données
   questionReponses = {};
-
+/*
   // Création du dictionnaire question-réponses
   myDependencies.forEach(function(dependency) {
+
     var parts = dependency.split("->");
     var answer = parts[0].trim();
     var question = parts[1].trim();
@@ -542,6 +561,23 @@ function onPageLoad() {
 
     questionReponses[question].push(answer);
   });
+  */
+
+  //alternative
+  for (var question in myDependencies) {
+    var formule = myDependencies[question]
+    var dependentQuestionElement = document.getElementById(question);
+  
+    if (updateQuestionsVisibilityComplex(formule)) {
+      dependentQuestionElement.style.display = 'block';
+      console.log("Ne pas cacher la question : " + question);
+    } else {
+      dependentQuestionElement.style.display = 'none';
+      console.log("Cacher la question : " + question);
+    }
+  }
+  
+
 
   // Vérification des conditions de visibilité initiales
   for (var question in questionReponses) {
@@ -571,6 +607,7 @@ function shouldShowQuestion(responses) {
 }
 
 // Réécriture de la partie de gestion des événements
+/*
 (function() {
   var reponsesQuestions = {};
   console.log("<----------reponsesQuestions---------->");
@@ -600,6 +637,7 @@ function shouldShowQuestion(responses) {
       otherElements.forEach(function(otherElements) {
         otherElements.addEventListener("change", function() {
           console.log("<----------otherElements.addEventListener---------->");
+          console.log(otherElements);
           updateQuestionsVisibility(otherElements);
         });
       });
@@ -619,6 +657,9 @@ function shouldShowQuestion(responses) {
         }
         console.log("isChecked : ");
         console.log(isChecked);
+        console.log("testaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        updateQuestionsVisibilityComplex('Q1R1 OU Q1R2')
+        console.log("testzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
 
         if (isChecked) {
           dependentQuestionElement.style.display = 'block';
@@ -626,7 +667,9 @@ function shouldShowQuestion(responses) {
         } else {
           dependentQuestionElement.style.display = 'none';
           console.log("Cacher la question : " + question);
-          console.log(isChecked)
+          console.log(isChecked);
+          
+
           // Supprimer les réponses (à implémenter si nécessaire)
         }
       }
@@ -639,6 +682,7 @@ function shouldShowQuestion(responses) {
   }
 
 })();
+*/
 
 function theEnd() {
   //ajouter "theEnd" en GET
@@ -649,4 +693,70 @@ function theEnd() {
   document.location.href = url;
 }
 
+
+
+function updateQuestionsVisibilityComplex(formule) {
+  // Remplacer les opérateurs logiques par leurs équivalents JavaScript
+  formule = formule.replace(/OU/g, '||').replace(/ET/g, '&&');
+
+  // Remplacer chaque code par sa valeur
+  formule = formule.replace(/Q[0-9]+R[0-9]+/g, function(match) {
+    const valeur = codeAnswerToID(match);
+    return valeur !== undefined ? valeur : false;
+  });
+
+  console.log("formule ____________________________________________________: "+formule);
+  console.log("eval(formule) : "+eval(formule));
+  return eval(formule);
+  
+}
+
+function lstAnswerDepends(){ 
+  //servira a mettre des linerter qur ces réponses
+  console.log("lstAnswerDepends");
+  const formule1 = 'Q1R1 ET Q1R2';
+  const formule2 = 'Q1R2 ET Q2R2';
+  const formule3 = 'Q1R3 ET Q6R2';
+  [
+  "abb87d9e-0dd0-4a96-a8ab-f25c882e6e35 -> c739fe12-7fb3-4f06-bd70-865730601387",
+  "abb87d9e-0dd0-4a96-a8ab-f25c882e6e35 -> b1b70dbb-ae45-4d85-aeb7-f45849e8ffef"
+  ]
+}
+
+
+
+codeAnswerToID("Q1R1");
+function codeAnswerToID(codeAnswer){
+  //codeAnswer == Q+numéro question R+numéro réponse
+  numberQuestion = codeAnswer.split("R")[0].replace("Q","");
+  //console.log("numberQuestion : "+numberQuestion);
+  numberAnswer = codeAnswer.split("R")[1];
+  //console.log("numberAnswer : "+numberAnswer);
+  //retourner l'id de la réponse
+  var id = "";
+
+
+  //parcourir toutes les questions et réponses
+  var question = document.getElementsByClassName("question-section");
+  questionSelected = question[numberQuestion-1];
+
+  //réponse élément de type input
+  var answer = questionSelected.getElementsByClassName("form-check-input");
+  id = answer[numberAnswer-1].value;
+  
+  //console.log("id : "+id);
+  //console.log("answer : ");
+  //console.log(answer[numberAnswer-1]);
+  //vérifier si la réponse est checed ou pas
+  if (answer[numberAnswer-1].checked == true) {
+    console.log("checked super condition");
+    return true;
+  }
+  else{
+    console.log("not checked super condition ");
+    return false;
+  }
+}
+
 </script>
+

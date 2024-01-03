@@ -35,6 +35,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
+from django.views import View
+from django.core.serializers.json import DjangoJSONEncoder
+import json
 User = get_user_model()
 
 def CreateForm(request,loginCust):
@@ -111,7 +114,7 @@ def details(request, loginCust):
 @csrf_exempt
 @login_required
 def QuestionView(request,loginCust,idForm):
-
+  idFormm = idForm
   #traitement des requetes 
   if request.method == "POST":
     action = request.POST.get("action")
@@ -275,39 +278,19 @@ def QuestionView(request,loginCust,idForm):
         modal = data["modal"]
         questions_data = data["questionsData"]
         CurrentQuestion = Question.objects.get(idQuestion=idDepedentQuestion)
-        #récupérer les lien de la cureent question
-        dependencies = QuestionDependency.objects.filter(dependent_question=CurrentQuestion)
-        print("dependencies : ", dependencies)
-
+        
         # Parcourir les données
         for question in questions_data:
-            id_element = question["idElement"]
-            liste_answer = question["listeAnswer"]
-            #afficher l'id des answer et si elles sont checked ou non
-            for CurAnswer in liste_answer:
-              print(f"ID de l'answer : {CurAnswer['idAnswer']}")
-              print(f"Checked : {CurAnswer['checked']}")
-              idCurrentAnswer=CurAnswer['idAnswer']
-              CurrentAnswer = Answer.objects.get(idAnswer=idCurrentAnswer)
-              #si la question current a un lien avec l'answer courant et que l'answer n'est pas checked alors supprimer le lien
-              if ( idCurrentAnswer in dependencies ):
-                if (CurAnswer['checked'] == False):
-                  QuestionDependency.remove_dependency(CurrentAnswer, CurrentQuestion)
-              else:
-                if (CurAnswer['checked'] == True):
-                  QuestionDependency.add_dependency(CurrentAnswer, CurrentQuestion)
+          id_element = question["idElement"]
+          formule = question["formule"]
+          liste_answer = question["listeAnswer"]
+          #afficher l'id des answer et si elles sont checked ou non
+          CurrentQuestion = Question.objects.get(idQuestion=id_element)
+          CurrentQuestion.dependency_formul = "R1Q1"
+          CurrentQuestion.save()
 
-            print(f"ID de l'élément : {id_element}")
-            print(f"Liste de réponses : {liste_answer}")
-            print("\n")
-
-
-      elif modal == "lienReponse":
-        print("lienReponse")
-        pass
-      
     return JsonResponse({"success": True})
-    
+
       ##########################################
       #   info requise pour afficher la page   #
       ##########################################
@@ -316,13 +299,18 @@ def QuestionView(request,loginCust,idForm):
     template = loader.get_template('polls/createQuestion.html')
     myType = Type.objects.all()
     form = CreateQuestion()
-    myForm = Form.objects.get(idForm=idForm)
+    myForm = Form.objects.get(idForm=idFormm)
 
+    info_form_json = []
     info_form = []
     myPages = Page.objects.filter(Form=idForm).order_by('number')
     print(myPages)
     form_data = {
       'form': myForm,
+      'pages': []
+    }
+    form_data_json = {
+      'formTitle': myForm.titleForm,
       'pages': []
     }
     for page in myPages:
@@ -331,17 +319,49 @@ def QuestionView(request,loginCust,idForm):
         'page': page,
         'questions': []
       }
+      
+      page_data_json = {
+        'pageid': str(page.idPage),
+        'pagenumber':str(page.number),
+        'questions_json': []
+      }
       for question in myQuestions:
         myAnswers = Answer.objects.filter(Question=question)
         question_data = {
           'question': question,
+          'formumle': question.dependency_formul,
           'answers': myAnswers
         }
+        question_data_json = {
+          'idQuestion': str(question.idQuestion),
+          'title': str(question.title),
+          'order': str(question.order),
+          'dependency_formul' : str(question.dependency_formul),
+          'answers_json' : []
+        }
+        for answer in myAnswers:
+          answer_data_json = {
+            'idAnswer': str(answer.idAnswer),
+            'answerCode': str(answer.Answer),
+            'checked': False
+          }
+          question_data_json['answers_json'].append(answer_data_json)
+        page_data_json['questions_json'].append(question_data_json)
         page_data['questions'].append(question_data)
       
       form_data['pages'].append(page_data)
+      form_data_json['pages'].append(page_data_json)
 
     info_form.append(form_data)
+    info_form_json.append(form_data_json)
+    
+    info_form_json_str = json.dumps(info_form_json, default=str)
+    print("info_form_json_str : ", info_form_json_str)  # Utilisez info_form_json_str ici
+    info_form_jsons = json.dumps(info_form_json)
+    print("ààààààààààààààààààààààààààà")
+    print(info_form_json_str)
+    print(type(info_form_json_str))
+    
     customer = myForm.Customer
     CurrentloginCust = customer.loginCust
     context = {
@@ -350,8 +370,10 @@ def QuestionView(request,loginCust,idForm):
       'info_form': info_form,
       'CurrentloginCust': CurrentloginCust,
       'myForm':myForm,
+      'myForm_json': info_form_json_str,
       'is_user_authenticated': request.user.is_authenticated,
     }
+    print("contexttttttttttttttttttttttttttttttttttttttttttttttttt")
     return HttpResponse(template.render(context, request))
 
 '''       ANCIEN CODE DE QuestionView 
@@ -599,6 +621,7 @@ def answerFormView(request):
   if request.method == 'POST':
     session_data = {}
     for key, value in request.POST.items():
+      
       if key.startswith("answer_"):
         session_data[key] = value
         request.session[key] = value
@@ -660,12 +683,29 @@ def reponse(request, username, idForm):
   myParticipant.save()
   request.session['myParticipant'] = username
   
+  
+  
+  
   myPages = Page.objects.filter(Form=myForm).order_by('number')
   my_dependencies = list(QuestionDependency.objects.filter(dependent_question__page__Form=myForm))
   #print("my_dependencies : ", my_dependencies)
+  
   my_dependencies_serialized = json.dumps([str(dep) for dep in my_dependencies])
-  #print(my_dependencies_serialized)
+  print("dependances :")
+  print(my_dependencies_serialized)
+  
   #vérifier si le formulaire existe
+  ###########"
+  # nouvel façon de gérer les dépendances"
+  
+  #faire une liste avec toutes les formules de questions
+  depend = {}
+  for page in myPages:
+    for question in page.question_set.all():
+      depend[str(question.idQuestion)] = question.dependency_formul
+      
+  print("depend : ", depend)
+    
 
   #vérifier preview
   if request.method == 'GET':
@@ -761,7 +801,8 @@ def reponse(request, username, idForm):
             'id': str(question.idQuestion),
             'name': str(question.title),
             'type': str(question.type),
-            'answer': []
+            'answer': [],
+            'dependency_formul': str(question.dependency_formul)
           }
         
           page_data['questions'].append(question_data)
@@ -876,7 +917,7 @@ def reponse(request, username, idForm):
     'myPages': myPages,
     'all_questions': all_questions,
     'preview': preview_doc,
-    'myDependencies': my_dependencies_serialized,
+    'myDependencies': json.dumps(depend),
     'user_responses': user_responses.get(str(myForm.idForm), {})
   }
   

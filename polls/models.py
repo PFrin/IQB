@@ -210,7 +210,8 @@ class Question(models.Model):
     nbrAnswerMin = models.IntegerField()
     nbrAnswerMax = models.IntegerField()
     order = models.IntegerField()
-    dependency_formul = models.TextField(blank=True, null=True)
+    dependency_formul = models.TextField(blank=True, null=True) #Q1R1 ET Q1R2, id Q1R1 ET id->Q1R2
+                                                                
 
     def __str__(self):
         return self.title
