@@ -253,12 +253,11 @@
         </div>
     </div>
 </div>
-<!--
+
 <script type="application/json" id="info_form_json">
-    {{ info_form_json|safe }}
+    {{ info_form_jsons }}
 </script>
--->
-<script> // A MODIFIER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+<script> // A MODIFIER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~
 
     function affichagedynamiqueLien(parametre,currentAnwser) {
         console.log("_________<3_______________");
@@ -268,7 +267,7 @@
         console.log("answer : " + currentAnwser);
 
         //récupéré l'élémeent avec id="lienQuestion" et le mettre dans une variable
-        var modal = document.getElementById("lienReponse");
+        var modal = document.getElementById("lienQuestion");
         //parcourir les questions de la variable et les mettre dans une liste
         var all_question = modal.querySelectorAll('.question-item');
         console.log(all_question);
@@ -526,7 +525,7 @@
     
                       // Récupérez la valeur d'origine et rétablissez-la
                       const originalValue = element.getAttribute('data-original-value');
-                      element.textContent = originalValue => eau;
+                      //element.textContent = originalValue => eau;
                   }
                 });
             });
@@ -653,7 +652,18 @@
                         
                         // Ouvrir le modal en utilisant la méthode 'show' et passer le paramètre en utilisant la méthode 'data'
                         $('#lienQuestion').data('parametre', parametre).modal('show');
-                        affichagedynamique(parametre);
+                        var form_data_json = "{{ info_form_json|safe }}";
+                
+
+                        console.log(form_data_json);
+                        console.log( typeof form_data_json)
+                        //changer les cotes simple par des double quotes
+                        form_data_json = form_data_json.replace(/'/g, '"');
+                        form_data_json = form_data_json.replace(/True/g, 'true');
+                        form_data_json = form_data_json.replace(/False/g, 'false');
+                        console.log('parse');
+                        console.log(JSON.parse(form_data_json));
+                        affichagedynamique(parametre,form_data_json);
                         
                     } else {
                         console.log("question sélectionnéeééééééààààà")
@@ -908,7 +918,53 @@
             var idElement = question.getAttribute('data-question-id');
             var all_answer = question.querySelectorAll('[type="checkbox"]');
             var listeAnswer = [];
-            var formule = "formule test";
+            //var formule = "formule test";
+            //si c'est la question sélectionné, sauvegarder la formule
+            var formule;
+            if (idElement == idQuestionSelected){
+                formule = document.getElementById("conditions").value;
+            }
+            else{
+                /*
+                
+                var form_data_json = "{{ info_form_json|safe }}";
+                var data = form_data_json;
+                //parcourir le json pour trouver la formule de la question sélectionnée
+                
+                for (var i = 0; i < data.length; i++) {
+                    var pages = data[i].pages;
+                    for (var j = 0; j < pages.length; j++) {
+                        var questions = pages[j].questions_json;
+                        for (var k = 0; k < questions.length; k++) {
+                            if (questions[k].idQuestion === idQuestionSelected) {
+                                formule.value = questions[k].dependency_formul;
+                                console.log("**************************************")
+                                console.log("**************************************")
+                                console.log("formule.value : " + formule.value);
+                            }
+                        }
+                    }
+                }
+                function getFormulaById(questionId, jsonData) {
+                    for (let i = 0; i < jsonData.length; i++) {
+                        const pages = jsonData[i].pages;
+                        for (let j = 0; j < pages.length; j++) {
+                            const questions = pages[j].questions_json;
+                            for (let k = 0; k < questions.length; k++) {
+                                if (questions[k].idQuestion === questionId) {
+                                    return questions[k].dependency_formul;
+                                }
+                            }
+                        }
+                    }
+                    // Retourne null si l'id de question n'est pas trouvé
+                    return null;
+                }
+                */
+                formule = "ancienne formule";
+
+                
+            }
     
             Array.from(all_answer).forEach((answer, answerIndex) => {
                 var idAnswer = answer.getAttribute('idAnswer');
@@ -949,9 +1005,7 @@
         console.log("go to bd");
 
         lienToDB(jsonString,idQuestionSelected,modal)
-
-
-        /*
+        
         const data = 
         {
             action: "lien",
@@ -973,7 +1027,7 @@
                 console.error('Erreur lors de la mise à jour', error);
             }
         });
-        */
+        
         $('#' + modal).modal('hide');
     }
 
@@ -1077,10 +1131,15 @@ async function initTextArea(data) {
 }
     */
     //parcourir le json et afficher les réponses sélectionnées dans le texte area
-    var form_data_json = '{{ info_form_json|safe }}';
-    
+/*
+    var form_data_json = "{{ info_form_json|safe }}";  
+
     //var form_data_json = document.getElementById('info_form_json').textContent;
-    console.log('tttt');
+    console.log('---> form_data_json <---');
+    console.log(form_data_json);
+    */
+
+    
     /*
     console.log(form_data_json);
     var form_data = JSON.parse(form_data_json);
@@ -1092,6 +1151,10 @@ async function initTextArea(data) {
     // Accéder à la propriété 'myForm' dans la première page
     console.log(form_data[0].form.titleForm);
 */
+    //mettre dans data la question sélectionner
+
+
+
     selectedAnswers = "";
     data.questionsData.forEach(question => {
         console.log("question");
@@ -1115,6 +1178,27 @@ async function initTextArea(data) {
 
 }
 
+function getFormule(){
+    const data = 
+    {
+        action: "getFormule",
+        question: idQuestionSelected,
+    };
+    console.log(data);
+    $.ajax({
+        type: 'POST', 
+        url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+        data: data,
+        success: function(response) {
+            // Gérez la réponse du serveur en cas de succès
+            console.log('Mise à jour réussie');
+        },
+        error: function(error) {
+            // Gérez les erreurs de la requête AJAX
+            console.error('Erreur lors de la mise à jour', error);
+        }
+    });
+}
 
 </script>
 {% endblock %}

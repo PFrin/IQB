@@ -570,9 +570,9 @@ function onPageLoad() {
     var formule = myDependencies[question];
     var dependentQuestionElement = document.getElementById(question);
     //console.log(updateQuestionsVisibilityComplex("Q1R1"));
-
+ 
     if (formule == ""){
-      dependentQuestionElement.style.display = 'block';
+      dependentQuestionElement.style.d0isplay = 'block';
       console.log("Ne pas cacher la question sans conditions : " + question);
     }else
       {if (updateQuestionsVisibilityComplex(formule)) {
@@ -733,7 +733,7 @@ function updateQuestionsVisibilityComplex(formule) {
  
   return eval(formule);
   
-}
+}   
 
 //console.log("lstAnswerDepends");
 //lstAnswerDepends();

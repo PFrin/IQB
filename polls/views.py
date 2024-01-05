@@ -286,8 +286,9 @@ def QuestionView(request,loginCust,idForm):
           liste_answer = question["listeAnswer"]
           #afficher l'id des answer et si elles sont checked ou non
           CurrentQuestion = Question.objects.get(idQuestion=id_element)
-          CurrentQuestion.dependency_formul = "Q1R1"
-          CurrentQuestion.save()
+          if( formule != "ancienne formule"):
+            CurrentQuestion.dependency_formul = formule
+            CurrentQuestion.save()
 
     return JsonResponse({"success": True})
 
@@ -355,12 +356,13 @@ def QuestionView(request,loginCust,idForm):
     info_form.append(form_data)
     info_form_json.append(form_data_json)
     
-    info_form_json_str = json.dumps(info_form_json, default=str)
-    print("info_form_json_str : ", info_form_json_str)  # Utilisez info_form_json_str ici
-    info_form_jsons = json.dumps(info_form_json)
+    #info_form_json_str = json.dumps(info_form_json, default=str)
+    #print("info_form_json_str : ", info_form_json_str)  # Utilisez info_form_json_str ici
+    #info_form_jsons = json.dumps(info_form_json)
     print("ààààààààààààààààààààààààààà")
-    print(info_form_json_str)
-    print(type(info_form_json_str))
+    print(info_form_json)
+    #print(info_form_json_str)
+    #print(type(info_form_json_str))
     
     customer = myForm.Customer
     CurrentloginCust = customer.loginCust
@@ -370,7 +372,7 @@ def QuestionView(request,loginCust,idForm):
       'info_form': info_form,
       'CurrentloginCust': CurrentloginCust,
       'myForm':myForm,
-      'myForm_json': info_form_json_str,
+      'info_form_json': info_form_json,
       'is_user_authenticated': request.user.is_authenticated,
     }
     print("contexttttttttttttttttttttttttttttttttttttttttttttttttt")
@@ -652,10 +654,10 @@ def preview_reponse(request, idForm):
 def reponse(request, username, idForm):
   #del request.session['form_data']
   
-  #action = request.POST.get("action")
-  #if action == "theEnd":
-  #  print("theEnd")
-  #  answerFormToBDDTheEnddd()
+  action = request.POST.get("action")
+  if action == "theEnd":
+    print("theEnd")
+    #answerFormToBDDTheEnddd()
     
     
   #clear la session
@@ -887,7 +889,6 @@ def reponse(request, username, idForm):
               # S'il n'y a pas de réponse, marquer la question comme non répondu
               question["isanswered"] = False
 
-
     #maj de la session 
     request.session['form_data'] = form_data
     with open('test.json', 'w') as outfile:
@@ -897,10 +898,10 @@ def reponse(request, username, idForm):
   if request.method == 'GET':
     print("GETTTT")
     #si thenEnd est dans la requete
-  for key in request.GET:
-    if key == 'theEnd':
-      print("theEndddddddddddd")
-      answerFormToBDDTheEnd(request)
+    for key in request.GET:
+      if key == 'theEnd':
+        print("theEndddddddddddd")
+        answerFormToBDDTheEnd(request)
 
 
   print("--------------------")
@@ -932,11 +933,11 @@ def reponse(request, username, idForm):
 def answerFormToBDDTheEnd(request):
     form_data = request.session.get('form_data')
     if not form_data:
-        return redirect('end')  # Rediriger si les données du formulaire ne sont pas présentes en session
+      return redirect('end')  # Rediriger si les données du formulaire ne sont pas présentes en session
 
     myParticipant = request.session.get('myParticipant')
     if not myParticipant:
-        return redirect('end')  # Rediriger si l'utilisateur n'est pas défini en session
+      return redirect('end')  # Rediriger si l'utilisateur n'est pas défini en session
 
     myParticipant = Participant.objects.get(loginParticipant=myParticipant)
 
@@ -946,6 +947,8 @@ def answerFormToBDDTheEnd(request):
             for question_info in page['questions']:
                 question_id = question_info['id']
                 answer_ids = question_info['answer']
+                print("question_info")
+                print(question_info)
                 print("answer_ids")
                 print(answer_ids)
                 
