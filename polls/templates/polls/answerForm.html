@@ -439,7 +439,8 @@ forms.forEach((form, index) => {
           pageMax = loadPageMax();
           // Si currentPage = pageMax, on incrémente pageMax
           savePageMax(pageMax + 1);
-          alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
+          console.log("currentPage : "+currentPage);
+          //alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
           //goToNextPage();
       } else {
         // Sinon, affichez un message d'erreur
@@ -571,7 +572,7 @@ function onPageLoad() {
     var dependentQuestionElement = document.getElementById(question);
     //console.log(updateQuestionsVisibilityComplex("Q1R1"));
  
-    if (formule == ""){
+    if (formule == "" || formule == null){
       dependentQuestionElement.style.d0isplay = 'block';
       console.log("Ne pas cacher la question sans conditions : " + question);
     }else
@@ -721,6 +722,7 @@ function theEnd() {
 
 function updateQuestionsVisibilityComplex(formule) {
   // Remplacer les opérateurs logiques par leurs équivalents JavaScript
+  console.log(formule);
   formule = formule.replace(/OU/g, '||').replace(/ET/g, '&&');
 
   // Remplacer chaque code par sa valeur
