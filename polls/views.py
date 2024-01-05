@@ -675,17 +675,32 @@ def reponse(request, username, idForm):
     myForm = Form.objects.get(idForm=idForm)
   except Form.DoesNotExist:
     return HttpResponse("Le formulaire n'existe pas")
-  
+  '''
   try:
     myParticipant = Participant.objects.get(loginParticipant=username)
-    
-  except Participant.DoesNotExist:    #créer un utilisateur anonyme !!!
+  except :
     myParticipant = Participant()
     myParticipant = myParticipant.create_participant(username)
+    return redirect('reponse', username=username, idForm=idForm) 
+  '''
+  condition = {'loginParticipant': username}
+  objet_existe = Participant.objects.filter(**condition).exists()
+
+  if objet_existe:
+    print("L'objet existe.")
+  else:
+    print("L'objet n'existe pas.")
+    myParticipant = Participant.objects.create(loginParticipant=username)
+    print("myParticipant : ", myParticipant)
   
   
-  myParticipant.save()
+  
+  
+  
+  
   request.session['myParticipant'] = username
+  #recharger la page
+  
   
   
   

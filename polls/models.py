@@ -460,10 +460,11 @@ class Participant(models.Model):
         return self.loginParticipant
     
     #créer un Participant
-    def create_participant(self, loginParticipant):
+    def create_participant(loginParticipant):
         Participant.objects.create(
             loginParticipant=loginParticipant
         )
+        Participant.save()
 
 class ParticipantAnswer(models.Model):
     idParticipantAnswer = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True)

@@ -418,7 +418,7 @@ forms.forEach((form, index) => {
     if (allQuestionsAnswered) {
       console.log("allQuestionsAnswered : " + allQuestionsAnswered);
       form.submit();
-      
+
     } else {
       alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
       // Afficher le formulaire 1
@@ -767,10 +767,10 @@ function codeAnswerToID(codeAnswer){
 
   //réponse élément de type input
   var answer = questionSelected.querySelectorAll('.form-check-input');
-  id = answer[numberAnswer].value;
+  //id = answer[numberAnswer].value;
   console.log(answer[numberAnswer-1]);
   
-  console.log("id : "+id);
+  //console.log("id : "+id);
   console.log("answer : ");
   console.log(answer[numberAnswer-1].checked);
   //vérifier si la réponse est checked ou pas
