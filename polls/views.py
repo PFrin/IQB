@@ -656,9 +656,11 @@ def reponse(request, username, idForm):
   
   action = request.POST.get("action")
   if action == "theEnd":
-    print("theEnd")
+    print("theEnd") 
     #answerFormToBDDTheEnddd()
-    
+  #si il y a "TheEnd" dans l'URL afficher page de fin
+  #if 'theEnd' in request.GET:
+  #  return redirect('end')
     
   #clear la session
   #request.session.flush()
@@ -902,9 +904,11 @@ def reponse(request, username, idForm):
       if key == 'theEnd':
         print("theEndddddddddddd")
         answerFormToBDDTheEnd(request)
+        if (answerFormToBDDTheEnd(request)):
+          return redirect('end')
+        
 
 
-  print("--------------------")
   print(myPages)
   print(type(myPages))
   all_questions = Question.objects.filter(page__in=myPages).order_by('order')
@@ -958,7 +962,6 @@ def answerFormToBDDTheEnd(request):
                     # Gérez les erreurs comme vous le souhaitez (peut-être enregistrer l'erreur)
                     print("Question.DoesNotExist")
                     continue
-                print("_____ALED___________")
                 for answer_id in answer_ids:
                     if is_valid_uuid(answer_id):
                         try:
@@ -991,9 +994,9 @@ def answerFormToBDDTheEnd(request):
 
     # Supprimez les données de session après les avoir traitées
     del request.session['form_data']
-    
+    print("redirection maintenant")
     # Redirigez l'utilisateur vers la page "end.html"
-    return redirect('end')
+    return True
 
 
 def end(request):

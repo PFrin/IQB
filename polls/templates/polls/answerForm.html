@@ -378,76 +378,59 @@ const forms = document.querySelectorAll('form');
 // Parcourez chaque formulaire
 forms.forEach((form, index) => {
   form.addEventListener('submit', function (event) {
-      event.preventDefault();
-      console.log("*");
-      console.log("**");
-      console.log("***");
-      console.log("****");
-      console.log("*****");
-      console.log("******");
-      console.log("*******");
+    event.preventDefault();
 
+    // Récupérez toutes les questions de ce formulaire
+    const requiredQuestions = form.querySelectorAll('h3.obligatory');
 
-      // Récupérez toutes les questions de ce formulaire
-      const requiredQuestions = form.querySelectorAll('h3.obligatory');
+    // Vérifiez si au moins une réponse a été fournie pour chaque question obligatoire
+    var allQuestionsAnswered = true;
 
-      // Vérifiez si au moins une réponse a été fournie pour chaque question obligatoire
-      var allQuestionsAnswered = true;
+    requiredQuestions.forEach((question) => {
+      const questionType = question.getAttribute('data-type');
+      console.log ("questionType : "+questionType); 
+      var questionAnswered = false;
 
-      requiredQuestions.forEach((question, questionIndex) => {
-          const questionType = question.getAttribute('data-type');
-          var questionAnswered = false;
-          console.log("questionType : "+questionType);
-
-          if (questionType === 'question ouverte') {
-              const textarea = form.querySelector(`textarea[name="${question.getAttribute('id')}"]`);
-              
-              if (textarea.value.trim() !== '') {
-                  questionAnswered = true;
-              }
-          } else {
-              const inputType = questionType === 'choix multiple' ? 'checkbox' : 'radio';
-              const inputs = form.querySelectorAll(`input[name="${question.getAttribute('id')}"][type="${inputType}"]:checked`);
-              if (inputs.length > 0) {
-                  questionAnswered = true;
-              }
-          }
-
-          // Nouvelle vérification pour les questions de type radio et checkbox
-          if (questionType === 'choix multiple' || questionType === 'Choix unique') {
-            const inputs = form.querySelectorAll(`input[name="${question.getAttribute('id')}"][type="${inputType}"]`);
-            console.log("inputs : ");
-            console.log(inputs);
-        
-            // Utilisez la méthode Array.some pour vérifier si au moins une réponse est cochée
-            if (Array.from(inputs).some(input => inputs.length)) {
-                questionAnswered = true;
-            }
+      if (questionType === 'question ouverte') {
+        const textarea = form.querySelector(`textarea[name="${question.getAttribute('id')}"]`);
+        if (textarea.value.trim() !== '') {
+          questionAnswered = true;
         }
-
-          // Si au moins une réponse a été donnée pour cette question obligatoire, mettez à jour la variable
-          if (!questionAnswered) {
-              allQuestionsAnswered = false;
-          }
-      });
-
-      // Si au moins une réponse a été fournie pour chaque question obligatoire, soumettez le formulaire
-      if (allQuestionsAnswered) {
-          form.submit();
-          // Charger currentPage et pageMax
-          currentPage = loadCurrentPage();
-          pageMax = loadPageMax();
-          // Si currentPage = pageMax, on incrémente pageMax
-          savePageMax(pageMax + 1);
-          console.log("currentPage : "+currentPage);
-          //alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
-          //goToNextPage();
       } else {
-        // Sinon, affichez un message d'erreur
-        alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
+        const inputType = questionType === 'choix multiple' ? 'checkbox' : 'radio';
+        console.log("inputType : "+inputType);
+        console.log(`input[name="${question.getAttribute('id')}"][type="${inputType}"]`);
+        const inputs = form.querySelectorAll(`input[type="${inputType}"]`);
+        console.log("inputs : ");
+        console.log(inputs);
+
+        // Utilisation de Array.from(inputs).some pour vérifier si au moins une réponse est cochée
+        if (Array.from(inputs).some(input => input.checked)) {
+          questionAnswered = true;
+        }
       }
+
+      if (!questionAnswered) {
+        allQuestionsAnswered = false;
+      }
+    });
+
+    if (allQuestionsAnswered) {
+      console.log("allQuestionsAnswered : " + allQuestionsAnswered);
+      form.submit();
+      
+    } else {
+      alert(`Veuillez répondre à au moins une question obligatoire du formulaire ${index + 1}.`);
+      // Afficher le formulaire 1
+      console.log("allQuestionsAnswered : " + allQuestionsAnswered);
+      console.log("form");
+      console.log(form);
+    }
   });
 });
+
+
+
 
 
 
