@@ -3,6 +3,7 @@
 {% extends 'master.html' %}
 {% block title %}IODA Group IQB{% endblock %}
 {% block content %}
+{% load static %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function newForm(myCustomer) {
@@ -124,10 +125,9 @@
                 <p>aucun formulaire disponible</p>
                 {% endif %}
 
-                <button onclick="newForm('{{myCustomer}}');" class="fixed-button">
-                    <p>Créer un formulaire</p>
-                </button>
-                
+                <button onclick="newForm('{{myCustomer}}');" class="fixed-button btn btn-primary">
+                    <img src="{% static 'IQB/images/newForm.png' %}" alt="NewForm" width="36" height="36">
+                </button>                
 
                 <hr>
                 <h1 id="mes-formulaires-en-construction">Mes Formulaires en Construction</h1>
@@ -198,10 +198,12 @@
                 // If checked, show the validation modal
                 showValidationModal();
             }
+            showValidationModal();
         });
 
         function showValidationModal() {
             $('#validationPublish').modal('show');
+            console.log('showValidationModal');
         }
 
         //si btn non ou fenetre modal fermer avec la croix alors on décocher "IsOnline"
@@ -213,6 +215,7 @@
         //publier le formulaire
         document.getElementById('btnValiderPublication').addEventListener('click',function() {
             console.log('Publication du formulaire');
+            idForm = {{ "blabl" }};
             data = {
                 action: "publier",
                 id : idForm
