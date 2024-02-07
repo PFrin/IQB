@@ -546,8 +546,10 @@ def formCreate(request):
 
 def home(request):
     if request.user.is_authenticated and isinstance(request.user, Customer):
+      print("You are authenticated")
       return render(request, 'polls/details.html')
     else:
+      print("You are not authenticated")
       return render(request, 'polls/login.html')
 
 import logging
@@ -558,6 +560,10 @@ logger = logging.getLogger(__name__)
 def login_view(request):
     print("login_view")
     context = {}
+    if request.user.is_authenticated:
+        print("Utilisateur déjà connecté")
+        print(request.session)
+        return redirect('details', request.user.loginCust)  
     if request.method == 'POST':
         print("POST")
         form = LoginForm(request, data=request.POST)
@@ -569,6 +575,7 @@ def login_view(request):
                 login(request, user)
                 logger.info('Utilisateur connecté avec succès: %s', user.loginCust)
                 print(f"Utilisateur connecté avec succès: {user.loginCust}")  # Ajout d'un print
+                request.session['id_Customer'] = str(user.idCustomer)
                 return redirect('details', user.loginCust)
             else:
                 error_message = 'Identifiants invalides.'
@@ -613,6 +620,7 @@ def register_view(request):
 def logout_view(request):
   logout(request)
   return redirect('login')
+
 
 #def answerFormView(request, formulaire_id,idUSer):
 def answerFormView(request):
