@@ -177,7 +177,7 @@
             {% endif %}
           {% endfor %}
         
-          <input type="submit" value="Submit" class="btn btn-primary">
+          <input type="submit" value="Submit" class="btn btn-primary submitBtn">
         </form>
         <p>* Indique une question obligatoire</p>
       </div>
@@ -285,7 +285,7 @@
 
 
 
-<!-- SCRIPT qui vérifie si le bouton submit d'une page rempli la condition de réponses aux questions -->
+
 <script>
   const loginCust = "{{ loginCust }}";
   const form = "{{ myForm }}";
@@ -345,6 +345,8 @@ function goToNextPage() {
     currentPage = currentPage+1;
     pageMax = pageMax+1;
     console.log("currentPage : "+currentPage);
+
+    //collectFormData(currentPage);
     saveCurrentPage(currentPage);
     savePageMax(pageMax)
 
@@ -481,6 +483,7 @@ function showCurrentPage(currentPage) {
 
 // Événement pour passer à la page suivante
 document.getElementById('nextPage').addEventListener('click', function () {
+  document.getElementById('submitBtn').click();
   currentPage = loadCurrentPage();
   pageMax = loadPageMax();
   console.log("nextPage");

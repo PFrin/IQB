@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="fr_FR">
+<html lang="fr">
   <head>
     <title>{% block title %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,7 +30,7 @@
       <!-- Header pour utilisateur connecté -->
       <nav class="navbar navbar-expand" style="max-width: 100%;">
         <div class="container">
-          <a class="navbar-brand" href="#"><img src="{% static 'IQB/images/LOGOENTIER-BLANC.png' %}" alt="Logo" style="max-width:100px;"></a>
+          <a class="navbar-brand" href="/{{user}}"><img src="{% static 'IQB/images/LOGOENTIER-BLANC.png' %}" alt="Logo" style="max-width:100px;"></a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -38,10 +38,10 @@
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
               <li class="nav-item">
-                <a class="nav-link" href="#">Mes Formulaires</a>
+                <a class="nav-link" href="/{{user}}">Mes Formulaires</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#" onclick="MesFormulaires()">Créer un formulaire </a>
+                <a class="nav-link" href="#" onClick="newForm({{user}})">Créer un formulaire </a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profilModal">
