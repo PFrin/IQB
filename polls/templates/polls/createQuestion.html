@@ -502,6 +502,7 @@
                 const value = $.trim(element.textContent); // Récupérez la valeur modifiée
                 const field = element.getAttribute('name');
 
+                      '<': '&lt;',
                 // Créez l'objet de données à envoyer dans la requête
                 const data = {
                     action: "update_input",
@@ -839,6 +840,11 @@
                     var redirectUrl = '/' + loginCust.idCustomer + '/form/' + idForm.toString() + '/?preview=true';
                     //document.location.href = redirectUrl;
                     window.open(redirectUrl, '_blank');
+                    //fermer la fenetre modal
+                    $('#validationPublish').modal('hide');
+                    //redirection vers la page de details du formulaire
+                    redirectUrl2 = '/' + loginCust;
+                    window.location.href= redirectUrl2;
                 },
                 error: function(error) {
                     // Gérez les erreurs de la requête AJAX
