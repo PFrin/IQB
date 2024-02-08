@@ -94,14 +94,16 @@ def details(request, loginCust):
     myCustomer = get_object_or_404(Customer, loginCust=loginCust)
     print("---------------------------")
     print (myCustomer)
-    myOnlineForm = Form.objects.filter(isOnline=True)
-    myFormUnderConstruction = Form.objects.filter(isOnline=False)
+    myOnlineForm = Form.objects.filter(isOnline=True)#.order_by('CreationDate')
+    myFormUnderConstruction = Form.objects.filter(isOnline=False, isArchived=False).order_by('-CreationDate')
+    myFormArchived = Form.objects.filter(isArchived=True)#.order_by('-CreationDate')
     print("myFormUnderConstruction : ", myFormUnderConstruction)
     print(type(myFormUnderConstruction))
     context = {
         'myCustomer': myCustomer,
         'myOnlineForm': myOnlineForm,
         'myFormUnderConstruction': myFormUnderConstruction,
+        'myFormArchived': myFormArchived,
         'is_user_authenticated': request.user.is_authenticated,
     }      
     return render(request, 'polls/details.html', context)
@@ -576,6 +578,7 @@ def login_view(request):
                 logger.info('Utilisateur connecté avec succès: %s', user.loginCust)
                 print(f"Utilisateur connecté avec succès: {user.loginCust}")  # Ajout d'un print
                 request.session['id_Customer'] = str(user.idCustomer)
+                request.session.set_expiry(90000) # 1j = 86400s
                 return redirect('details', user.loginCust)
             else:
                 error_message = 'Identifiants invalides.'
@@ -630,6 +633,7 @@ def answerFormView(request):
 
   if request.method == 'POST':
     session_data = {}
+    #user_id = request.session.get('user_id')
     for key, value in request.POST.items():
       
       if key.startswith("answer_"):
@@ -660,6 +664,10 @@ def preview_reponse(request, idForm):
 
 @csrf_exempt
 def reponse(request, username, idForm):
+  #my_session_data = request.session
+  print("µµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµ")
+  #print(my_session_data)
+  print("µµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµµ")
   #del request.session['form_data']
   
   action = request.POST.get("action")
@@ -706,7 +714,7 @@ def reponse(request, username, idForm):
   
   
   
-  request.session['myParticipant'] = username
+  #request.session['myParticipant'] = username
   #recharger la page
   
   

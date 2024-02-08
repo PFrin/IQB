@@ -84,6 +84,7 @@ class Form(models.Model):
     MEPDate          = models.DateTimeField(blank=True, null=True)
     lastModifiedDate = models.DateTimeField(auto_now=True)      # date de la derniere modification de l'objet
     isOnline         = models.BooleanField(default=False)
+    isArchived       = models.BooleanField(default=False)
     Customer         = models.ForeignKey(Customer, on_delete=models.CASCADE)
     #css_file         = models.FileField(blank=True, null=False, default=STATIC_URL_STYLE + 'default.css')
     logo_path        = models.CharField(max_length=100, blank=True, null=False)
@@ -93,6 +94,11 @@ class Form(models.Model):
         self.isOnline = True
         self.save()
     
+    def archive(self):
+        self.isOnline = False
+        self.isArchived = True
+        self.save()
+        
     #fonction pour ajouter un formulaire
     def add_form(self):
 

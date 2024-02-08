@@ -84,7 +84,7 @@
                             <a class="nav-link" href="#mes-formulaires-en-construction">Mes Formulaires en Construction</a>
                         </li>
                         <li class="nav-item" style="margin-top:20px";>
-                            <a class="nav-link" href="#archive-form">Mes Archives</a>
+                            <a class="nav-link" href="#mes-formulaires-en-Archive">Mes Archives</a>
                         </li>
                     </ul>
                 </div>
@@ -113,8 +113,12 @@
                                     <i class="fas fa-edit"></i> répondre au formulaire
                                 </button>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" checked disabled>
-                                    <label class="form-check-label" for="flexSwitchCheckDefault">Is Online</label>
+                                    <input class="form-check-input" type="checkbox" role="switch" checked disabled>
+                                    <label class="form-check-label">Is Online</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefaultArchived">
+                                    <label class="form-check-label" for="flexSwitchCheckDefaultArchived">Is Archived</label>
                                 </div>
                             </div>
                         </div>
@@ -167,14 +171,41 @@
                 <p>aucun formulaire disponible</p>
                 <hr>
                 {% endif %}
-                <!--
-                <h1 id="archive-form">Mes Archives</h1>
-                -->
+                <h1 id="mes-formulaires-en-Archive">Mes Formulaires en Archive</h1>
+                {% if myFormArchived|length > 0 %}
+                <div class="row">
+                    {% for x in myFormArchived %}
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <header>
+                                <h2 class="card-title">{{ x.titleForm }}</h2>
+                            </header>
+                            <div class="card-body">
+                                <p class="card-text"><strong>CreationDate: </strong>{{ x.CreationDate }}</p>
+                                <p class="card-text"><strong>LastModifiedDate: </strong>{{ x.lastModifiedDate }}</p>
+                                <p class="card-text"><strong>Auteur : </strong>{{ x.Customer.loginCust }}</p>
+                            </div>
+                            <div class="card-footer">
+                                <button  onclick="preview('{{ myCustomer }}','{{ x.idForm }}');" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Voir le rendu
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>aucun formulaire disponible</p>
+                <hr>
+                {% endif %}
+                
+
+
             </main>
         </div>
     </div>
     <!-- Modal pour demander la validation de l'action -->
-    <div class="modal fade" id="validationPublish" tabindex="-1" aria-labelledby="validationLabel" aria-hidden="true">
+    <div class="modal fade validation-modal" tabindex="-1" aria-labelledby="validationLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -191,56 +222,62 @@
             </div>
         </div>
     </div>
+    <!-- Modal pour demander la validation de l'action pour mlettre en archive-->
+    <div class="modal fade archive-modal" tabindex="-1" aria-labelledby="archiveLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ArchiveLabel">Validation la mise en Archive </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Voulez-vous vraiment archiver le formulaire ?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Non</button>
+                    <button type="button" class="btn btn-primary" id="btnValiderArchive">Oui</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
-        document.getElementById('flexSwitchCheckDefault').addEventListener('change', function () {
-            // Check if the checkbox is checked
-            if (this.checked) {
-                // If checked, show the validation modal
-                showValidationModal();
-            }
-            showValidationModal();
-        });
-
-        function showValidationModal() {
-            $('#validationPublish').modal('show');
-            console.log('showValidationModal');
+    $(document).ready(function () {
+        // Fonction pour afficher la modal de validation
+        function showValidationModal(modalClass) {
+            $(modalClass).modal('show');
+            console.log('Affichage de la modal de validation');
         }
 
-        //si btn non ou fenetre modal fermer avec la croix alors on décocher "IsOnline"
-        $('#validationPublish').on('hidden.bs.modal', function (e) {
-            document.getElementById('flexSwitchCheckDefault').checked = false;
+        // Gestion des changements dans le switch "Is Online"
+        $('.flexSwitchCheckDefault').on('change', function () {
+            if (this.checked) {
+                showValidationModal('.validation-modal');
+            }
         });
-    
 
-        //publier le formulaire
-        document.getElementById('btnValiderPublication').addEventListener('click',function() {
-            console.log('Publication du formulaire');
-            idForm = {{ "blabl" }};
-            data = {
-                action: "publier",
-                id : idForm
-            };
-
-            $.ajax({
-                type: 'POST', 
-                url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
-                data: data,
-                success: function(response) {
-                    // Gérez la réponse du serveur en cas de succès
-                    console.log('Mise à jour réussie');
-                    var redirectUrl = '/' + loginCust.idCustomer + '/form/' + idForm.toString() + '/?preview=true';
-                    document.location.href = redirectUrl;
-                },
-                error: function(error) {
-                    // Gérez les erreurs de la requête AJAX
-                    console.error('Erreur lors de la mise à jour', error);
-    
-                    // Récupérez la valeur d'origine et rétablissez-la
-                    const originalValue = element.getAttribute('data-original-value');
-                    element.textContent = originalValue;
-                }
-            });
+        // Gestion des changements dans le switch "Is Archived"
+        $('.flexSwitchCheckDefaultArchived').on('change', function () {
+            if (this.checked) {
+                showValidationModal('.archive-modal');
+            }
         });
-    
-    </script>
+
+        // Réinitialiser le switch "Is Online" si la modal est fermée
+        $('.validation-modal').on('hidden.bs.modal', function (e) {
+            $('.flexSwitchCheckDefault').prop('checked', false);
+        });
+
+        // Réinitialiser le switch "Is Archived" si la modal est fermée
+        $('.archive-modal').on('hidden.bs.modal', function (e) {
+            $('.flexSwitchCheckDefaultArchived').prop('checked', false);
+        });
+
+        // Gestion du clic sur le bouton "Oui" de la modal de validation
+        $('.btnValider').on('click', function () {
+            $(this).closest('.modal').modal('hide');
+            console.log('Action confirmée');
+        });
+
+    });
+</script>
 {% endblock %}
