@@ -37,13 +37,13 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-              <li class="nav-item">
+              <li class="nav-item" id='headerNewForm'>
+                <a class="nav-link" href="#" onClick=newForm("{{user}}")>Créer un formulaire </a>
+              </li>
+              <li class="nav-item" id='headerDetails'>
                 <a class="nav-link" href="/{{user}}">Mes Formulaires</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#" onClick="newForm({{user}})">Créer un formulaire </a>
-              </li>
-              <li class="nav-item">
+              <li class="nav-item" id='headerProfil'>
                 <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profilModal">
                   <div id="profil-dropdown" class="profil-dropdown">
                     <img class="profil-image" src="{% static 'IQB/images/profil.png' %}" alt="Profil">
