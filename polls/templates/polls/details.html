@@ -97,7 +97,7 @@
                     <div class="col-md-4">
                         <div class="card mb-4">
                             <header>
-                                <h2 class="card-title">{{ x.titleForm }}</h2>
+                                <h2 class="card-title" data-form-id="{{ x.idForm }}">{{ x.titleForm }}</h2>
                             </header>
                             <div class="card-body">
                                 <p class="card-text"><strong>CreationDate: </strong>{{ x.CreationDate }}</p>
@@ -116,8 +116,8 @@
                                     <input class="form-check-input" type="checkbox" role="switch" checked disabled>
                                     <label class="form-check-label">Is Online</label>
                                 </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefaultArchived">
+                                <div class="form-check form-switch oko" id="{{ x.idForm }}">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefaultArchived" value"aaaaaaaaa">
                                     <label class="form-check-label" for="flexSwitchCheckDefaultArchived">Is Archived</label>
                                 </div>
                             </div>
@@ -141,7 +141,7 @@
                     <div class="col-md-4">
                         <div class="card mb-4">
                             <header>
-                                <h2 class="card-title">{{ x.titleForm }}</h2>
+                                <h2 class="card-title" data-form-id="{{ x.idForm }}">{{ x.titleForm }}</h2>
                             </header>
                             <div class="card-body">
                                 <p class="card-text"><strong>CreationDate: </strong>{{ x.CreationDate }}</p>
@@ -222,7 +222,7 @@
             </div>
         </div>
     </div>
-    <!-- Modal pour demander la validation de l'action pour mlettre en archive-->
+    <!-- Modal pour demander la validation de l'action pour mlettre en archive
     <div class="modal fade archive-modal" tabindex="-1" aria-labelledby="archiveLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -239,36 +239,98 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>-->
     <script>
-    $(document).ready(function () {
+        $(document).ready(function() {
+            // Ecoute des changements d'état des boutons switch
+            $('.form-check-input').change(function() {
+                // Vérifie si le bouton switch est coché
+                if ($(this).is(':checked')) {
+                    action = $(this).attr('id');
+                    // Récupère l'identifiant du formulaire correspondant
+                    var formId = $(this).closest('.card').find('.card-title').data('form-id');
+                    console.log(formId);
+                    
+                    // Affiche la fenêtre modale avec l'identifiant du formulaire
+                    $('#validationLabel').text('Validation publication pour le formulaire ' + formId);
+                    $('.validation-modal').data('form-id', formId).data('action', action).modal('show');
+                }
+            });
+            //position initiale si annuler
+            $('.validation-modal').on('hidden.bs.modal', function (e) {
+                console.log('Fermeture de la modal de validation');
+                $('.form-check-input').prop('checked', false);
+            });
+            // Ecoute du clic sur le bouton "Oui" de la modal de validation
+            $('#btnValiderPublication').on('click', function() {
+                // Ferme la fenêtre modale
+                $(this).closest('.modal').modal('hide');
+                var actionForm = $('.validation-modal').data('action');
+                console.log('Action confirmée');
+                if (actionForm == 'flexSwitchCheckDefault') {
+                    actionForm = "publier";
+                } else {
+                    actionForm = "archiver";
+                }
+                const data = {
+                    action: actionForm,
+                    id : $('.validation-modal').data('form-id')
+                };
+                const loginCust = "{{ myCustomer.loginCust }}";
+                $.ajax({
+                    type: 'POST', 
+                    url: '{% url "details" loginCust=myCustomer.loginCust %}',
+                    //url: '{% url "QuestionView" loginCust='+loginCust+' idForm='+idForm+' %}', // l'URL vue Django
+                    data: data,
+                    success: function(response) {
+                        console.log("Succès");
+                        window.location.reload();
+                    },
+                    error: function(response) {
+                        console.log("Erreur");
+                        window.location.reload();
+                    }
+                });
+                
+            });
+        });
+
+
+    </script>
+    <script>
+        /*
+    //$(document).ready(function () {
         // Fonction pour afficher la modal de validation
         function showValidationModal(modalClass) {
+            console.log(modalClass);
             $(modalClass).modal('show');
             console.log('Affichage de la modal de validation');
         }
 
         // Gestion des changements dans le switch "Is Online"
         $('.flexSwitchCheckDefault').on('change', function () {
+            console.log(this.checked);
             if (this.checked) {
                 showValidationModal('.validation-modal');
             }
         });
 
         // Gestion des changements dans le switch "Is Archived"
-        $('.flexSwitchCheckDefaultArchived').on('change', function () {
-            if (this.checked) {
-                showValidationModal('.archive-modal');
-            }
+        $('.flexSwitchCheckDefaultArchived').on('change', function (e) {
+            console.log("test");
+            //if (this.checked) {
+            //    showValidationModal('.archive-modal');
+            //}
         });
-
         // Réinitialiser le switch "Is Online" si la modal est fermée
         $('.validation-modal').on('hidden.bs.modal', function (e) {
+            console.log('Fermeture de la modal de validation');
             $('.flexSwitchCheckDefault').prop('checked', false);
         });
 
         // Réinitialiser le switch "Is Archived" si la modal est fermée
         $('.archive-modal').on('hidden.bs.modal', function (e) {
+            console.log('Fermeture de la modal de validation');
             $('.flexSwitchCheckDefaultArchived').prop('checked', false);
         });
 
@@ -278,6 +340,6 @@
             console.log('Action confirmée');
         });
 
-    });
+    });  */  
 </script>
 {% endblock %}

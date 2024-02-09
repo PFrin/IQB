@@ -66,6 +66,7 @@ def details(request, loginCust):
     return redirect('login')
   if request.method == "POST":
     action = request.POST.get("action")
+    print ("action : ", action)
     if action == "newForm":
       myCustomer = get_object_or_404(Customer, loginCust=loginCust)
 
@@ -80,7 +81,7 @@ def details(request, loginCust):
       }
       return JsonResponse(response_data)
     if action == "deleteForm":
-      formId = request.POST.get("formId")
+      formId = request.POST.get("id")
       myForm = get_object_or_404(Form, idForm=formId)
       myForm.delete_form()
       
@@ -88,6 +89,24 @@ def details(request, loginCust):
         'success': myForm.delete_form(),
       }
 
+      return JsonResponse(response_data)
+    if action == "publier" :
+      formId = request.POST.get("id")
+      myForm = get_object_or_404(Form, idForm=formId)
+      myForm.publish()
+      response_data = {
+        'success': "super",
+      }
+      return JsonResponse(response_data)
+    if action == "archiver":
+      print("archiver")
+      formId = request.POST.get("formId")
+      
+      myForm = get_object_or_404(Form, idForm=formId)
+      myForm.archive()
+      response_data = {
+        'success': "super",
+      }
       return JsonResponse(response_data)
 
   try:
