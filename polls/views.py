@@ -100,7 +100,7 @@ def details(request, loginCust):
       return JsonResponse(response_data)
     if action == "archiver":
       print("archiver")
-      formId = request.POST.get("formId")
+      formId = request.POST.get("id")
       
       myForm = get_object_or_404(Form, idForm=formId)
       myForm.archive()
