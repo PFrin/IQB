@@ -578,7 +578,7 @@ def login_view(request):
                 logger.info('Utilisateur connecté avec succès: %s', user.loginCust)
                 print(f"Utilisateur connecté avec succès: {user.loginCust}")  # Ajout d'un print
                 request.session['id_Customer'] = str(user.idCustomer)
-                request.session.set_expiry(90000) # 1j = 86400s
+                request.session.set_expiry(3600) # 1j = 86400s / 1H = 3600s
                 return redirect('details', user.loginCust)
             else:
                 error_message = 'Identifiants invalides.'
