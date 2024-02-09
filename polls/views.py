@@ -94,9 +94,9 @@ def details(request, loginCust):
     myCustomer = get_object_or_404(Customer, loginCust=loginCust)
     print("---------------------------")
     print (myCustomer)
-    myOnlineForm = Form.objects.filter(isOnline=True)#.order_by('CreationDate')
+    myOnlineForm = Form.objects.filter(isOnline=True).order_by('-CreationDate')
     myFormUnderConstruction = Form.objects.filter(isOnline=False, isArchived=False).order_by('-CreationDate')
-    myFormArchived = Form.objects.filter(isArchived=True)#.order_by('-CreationDate')
+    myFormArchived = Form.objects.filter(isArchived=True).order_by('-CreationDate')
     print("myFormUnderConstruction : ", myFormUnderConstruction)
     print(type(myFormUnderConstruction))
     context = {
