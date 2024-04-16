@@ -502,12 +502,23 @@
                 const value = $.trim(element.textContent); // Récupérez la valeur modifiée
                 const field = element.getAttribute('name');
 
+                function escapeHtml(text) {
+                    var map = {
+                      '&': '&amp;',
                       '<': '&lt;',
+                      '>': '&gt;',
+                      '"': '&quot;',
+                      "'": '&#039;'
+                    };
+                  
+                    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+                  }
+
                 // Créez l'objet de données à envoyer dans la requête
                 const data = {
                     action: "update_input",
                     id: id,
-                    value: value,
+                    value: escapeHtml(value),
 
                     //model: modelName,
                     field: field

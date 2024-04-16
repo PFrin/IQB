@@ -699,9 +699,9 @@ def reponse(request, username, idForm):
     
   #clear la session
   #request.session.flush()
-  print("------------------------")
-  print("|        debug         |")
-  print("------------------------")
+    print("------------------------")
+    print("|        debug         |")
+    print("------------------------")
 
   preview_doc = None
   #gestion des erreurs 
@@ -720,9 +720,11 @@ def reponse(request, username, idForm):
   '''
   condition = {'loginParticipant': username}
   objet_existe = Participant.objects.filter(**condition).exists()
+  
 
   if objet_existe:
     print("L'objet existe.")
+    myParticipant = Participant.objects.get(loginParticipant=username)
   else:
     print("L'objet n'existe pas.")
     myParticipant = Participant.objects.create(loginParticipant=username)
@@ -985,12 +987,17 @@ def reponse(request, username, idForm):
   return render(request, 'polls/answerForm.html', context)
 
 def answerFormToBDDTheEnd(request):
+    print("answerFormToBDDTheEnd")
+    print("request.session")
+    print(request.session)
     form_data = request.session.get('form_data')
     if not form_data:
+      print ("Les données du formulaire ne sont pas présentes en session")
       return redirect('end')  # Rediriger si les données du formulaire ne sont pas présentes en session
 
     myParticipant = request.session.get('myParticipant')
     if not myParticipant:
+      print("l'utilisateur n'est pas défini en session")
       return redirect('end')  # Rediriger si l'utilisateur n'est pas défini en session
 
     myParticipant = Participant.objects.get(loginParticipant=myParticipant)
@@ -1062,7 +1069,7 @@ def is_valid_uuid(uuid_to_test, version=4):
 
 
 #def answerFormToDB(request):
-  #récupérer les données du formulaire dans la session
+  #récupérer les données du formulaire dans la se ssion
   #enregistrer les données dans la base de données
   #redirect vers une page de fin vec le texte de conclusion du formulaire
 
