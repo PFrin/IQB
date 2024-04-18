@@ -120,7 +120,7 @@
 </head>
 <body>
   <div class="content">
-    <img id='logo' src="{% static myForm.logo_path %}" alt=" " style="width: 100px; height: 100px;">
+    <img id='logo' src="{% static myForm.logo_path %}" alt="logo" style="width: 100px; height: 100px;">
     <h1>{{ myForm.titleForm }}</h1>
 
     <!--
@@ -393,11 +393,14 @@ forms.forEach((form, index) => {
       console.log ("questionType : "+questionType); 
       var questionAnswered = false;
 
-      if (questionType === 'question ouverte') {
+      /*if (questionType === 'question ouverte') {
         const textarea = form.querySelector(`textarea[name="${question.getAttribute('id')}"]`);
         if (textarea.value.trim() !== '') {
           questionAnswered = true;
-        }
+        }*/
+      if (questionType === 'question ouverte') {
+        // Vérifiez si la question ouverte a une valeur
+        questionAnswered = true;
       } else {
         const inputType = questionType === 'choix multiple' ? 'checkbox' : 'radio';
         console.log("inputType : "+inputType);
@@ -483,7 +486,7 @@ function showCurrentPage(currentPage) {
 
 // Événement pour passer à la page suivante
 document.getElementById('nextPage').addEventListener('click', function () {
-  //document.getElementById('submitBtn').click();
+  document.getElementById('nextPage').click();
   currentPage = loadCurrentPage();
   pageMax = loadPageMax();
   console.log("nextPage");
